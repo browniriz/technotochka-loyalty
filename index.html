@@ -798,9 +798,9 @@
 
   async function selectClient(clientTgId) {
     try {
-      const data = await api({ action: 'getClientById', client_tg_id: clientTgId });
+      const data = await api({ action: 'getClientById', client_tg_id: clientTgId, tg_id: clientTgId });
       if (!data.found) { showToast('Клиент не найден', 'error'); return; }
-      openSalePanel(data);
+      openSalePanel(data.client);
     } catch {
       showToast('Ошибка', 'error');
     }
