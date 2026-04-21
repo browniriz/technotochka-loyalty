@@ -624,10 +624,12 @@
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
       if (tgUser?.id) params.tg_id = String(tgUser.id);
 
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(params));
+
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
+        body: formData
       });
 
       const text = await response.text();
