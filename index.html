@@ -626,15 +626,11 @@
 
       const response = await fetch(API_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params)
       });
 
-      // no-cors возвращает opaque response — читаем через GET fallback
-      const getUrl = API_URL + '?action=' + (params.action || '') + '&tg_id=' + (params.tg_id || '');
-      const getResp = await fetch(getUrl);
-      const text = await getResp.text();
+      const text = await response.text();
       return JSON.parse(text);
     } catch (err) {
       console.error('API error:', err);
