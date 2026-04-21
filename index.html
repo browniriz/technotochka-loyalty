@@ -874,7 +874,7 @@
         points_redeemed: redeem
       });
       if (data.success) {
-        showToast(`Оформлено! +${fmt(data.points_earned)} баллов`, 'success');
+        showToast(`Оформлено! +${fmt(data.sale?.points_earned || data.points_earned || 0)} баллов`, 'success');
         hideSalePanel();
         document.getElementById('search-query').value = '';
         document.getElementById('search-results').innerHTML = '';
