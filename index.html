@@ -779,7 +779,7 @@
 
     try {
       const data = await api({ action: 'searchClient', query: q });
-      const clients = data.clients || [];
+      const clients = data.results || data.clients || [];
 
       resultsEl.innerHTML = clients.length
         ? clients.map(c => `
