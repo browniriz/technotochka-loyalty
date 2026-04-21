@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Техноточка Бонусы</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1623;
+      --surface: #1d2a3a;
+      --surface2: #243448;
+      --accent: #3b82f6;
+      --text: #ffffff;
+      --muted: #8aa4bf;
+      --r: 12px;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Loading */
+    #screen-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      gap: 16px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--surface);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 14px; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header-logo {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 18px; font-weight: 700; }
+    .header-sub { font-size: 12px; color: var(--muted); }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* Balance */
+    .balance-big {
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .balance-label { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+    /* Level badge */
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    .level-new     { background: #1e293b; color: #94a3b8; }
+    .level-regular { background: #1c3a2b; color: #4ade80; }
+    .level-vip     { background: #2d1f4a; color: #a78bfa; }
+
+    /* Cashback rows */
+    .cashback-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+    }
+    .cashback-row:last-child { border-bottom: none; }
+    .cashback-val { font-weight: 600; color: var(--accent); }
+
+    /* QR */
+    #qr-canvas-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0;
+    }
+    #qr-canvas {
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+    }
+    .qr-hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+    /* History */
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-date  { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .points-plus   { color: var(--success); font-size: 13px; }
+    .points-minus  { color: var(--danger);  font-size: 13px; }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--r);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      font-family: inherit;
+    }
+    .btn:active { opacity: 0.7; }
+    .btn-primary   { background: var(--accent);   color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); }
+    .btn-danger    { background: var(--danger);   color: #fff; }
+    .btn-success   { background: var(--success);  color: #fff; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 8px; }
+
+    /* Inputs */
+    .input-group { margin-bottom: 12px; }
+    .input-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    .input:focus { border-color: var(--accent); }
+    .input::placeholder { color: var(--muted); }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: var(--r);
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+    }
+    .tab.active { background: var(--accent); color: #fff; }
+
+    /* Search results */
+    .client-result {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--surface2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .client-result:active { background: #2f4460; }
+    .client-name    { font-weight: 600; font-size: 15px; }
+    .client-info    { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .client-balance { font-weight: 700; color: var(--accent); font-size: 18px; flex-shrink: 0; }
+
+    /* Sale panel */
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      border: none;
+      background: none;
+      padding: 0;
+      font-family: inherit;
+    }
+    .sale-client-card {
+      background: var(--surface2);
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--accent);
+    }
+    .sale-client-name    { font-weight: 700; font-size: 16px; }
+    .sale-client-meta    { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .sale-client-balance { font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 8px; }
+
+    .points-calc {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .points-calc strong { color: var(--text); }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      margin: 6px 0;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-value { font-size: 26px; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* Staff list */
+    .staff-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--surface2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .staff-name       { font-weight: 600; }
+    .staff-meta       { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .staff-sales      { font-weight: 700; color: var(--accent); text-align: right; }
+    .staff-sales-lbl  { font-size: 11px; color: var(--muted); }
+
+    /* Ref box */
+    .ref-box {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-all;
+      margin-bottom: 10px;
+      border: 1px dashed rgba(59,130,246,0.4);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: flex-end;
+      z-index: 100;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 16px 40px;
+      width: 100%;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      z-index: 200;
+      white-space: nowrap;
+      max-width: calc(100vw - 32px);
+      white-space: normal;
+      text-align: center;
+    }
+    #toast.show    { transform: translateX(-50%) translateY(0); }
+    #toast.success { border-left: 3px solid var(--success); }
+    #toast.error   { border-left: 3px solid var(--danger); }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+    /* Divider */
+    .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 12px 0; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOADING ─────────────────────────────────────── -->
+<div id="screen-loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Загрузка...</div>
+</div>
+
+<!-- ── CLIENT ─────────────────────────────────────── -->
+<div id="screen-client" class="hidden">
+  <div class="header">
+    <div class="header-logo">💎</div>
+    <div>
+      <div class="header-title">Техноточка Бонусы</div>
+      <div class="header-sub" id="client-name-header">Привет!</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Бонусный баланс</div>
+    <div class="balance-big" id="client-balance">0</div>
+    <div class="balance-label">баллов · 1 балл = 1 ₽</div>
+    <div id="client-level-badge" class="level-badge level-new">⭐ Новый</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Условия кешбэка</div>
+    <div class="cashback-row">
+      <span>Новый (до 10 000 ₽/год)</span>
+      <span class="cashback-val">3%</span>
+    </div>
+    <div class="cashback-row">
+      <span>Постоянный (до 40 000 ₽/год)</span>
+      <span class="cashback-val">5%</span>
+    </div>
+    <div class="cashback-row">
+      <span>Свой (от 40 000 ₽/год)</span>
+      <span class="cashback-val">7%</span>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--muted)">Списание баллов — до 15% от суммы покупки</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Мой QR-код</div>
+    <div id="qr-canvas-wrapper">
+      <canvas id="qr-canvas"></canvas>
+    </div>
+    <div class="qr-hint">Покажите кассиру для начисления бонусов</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">История покупок</div>
+    <div id="client-history-list">
+      <div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REGISTER ────────────────────────────────────── -->
+<div id="screen-register" class="hidden">
+  <div class="header">
+    <div class="header-logo">💎</div>
+    <div>
+      <div class="header-title">Техноточка Бонусы</div>
+      <div class="header-sub">Добро пожаловать!</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Регистрация в программе лояльности</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:16px">
+      Заполните данные и получайте кешбэк с каждой покупки
+    </div>
+    <div class="input-group">
+      <label class="input-label">ФИО *</label>
+      <input class="input" id="reg-fio" type="text" placeholder="Иванов Иван Иванович">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Телефон *</label>
+      <input class="input" id="reg-phone" type="tel" placeholder="+7 (___) ___-__-__">
+    </div>
+    <button class="btn btn-primary" onclick="doRegister()">🎉 Зарегистрироваться</button>
+  </div>
+</div>
+
+<!-- ── STAFF ───────────────────────────────────────── -->
+<div id="screen-staff" class="hidden">
+  <div class="header">
+    <div class="header-logo">🛒</div>
+    <div>
+      <div class="header-title">Техноточка</div>
+      <div class="header-sub" id="staff-name-header">Сотрудник</div>
+    </div>
+  </div>
+
+  <div class="tabs" id="staff-tabs">
+    <button class="tab active" id="tab-search" onclick="staffTab('search')">Поиск</button>
+    <button class="tab"        id="tab-scan"   onclick="staffTab('scan')">Сканер QR</button>
+    <button class="tab"        id="tab-ref"    onclick="staffTab('ref')">Реферал</button>
+  </div>
+
+  <!-- Search tab -->
+  <div id="staff-tab-search">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="input" id="search-query" placeholder="ФИО или телефон" style="flex:1"
+             onkeydown="if(event.key==='Enter') doSearch()">
+      <button class="btn btn-primary btn-sm" onclick="doSearch()">Найти</button>
+    </div>
+    <div id="search-results"></div>
+  </div>
+
+  <!-- Scan tab -->
+  <div id="staff-tab-scan" class="hidden">
+    <div class="card" style="text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">📷</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px">Сканировать QR клиента</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        Откроет камеру для сканирования бонусного QR-кода
+      </div>
+      <button class="btn btn-primary" onclick="doScanQR()">Открыть сканер</button>
+    </div>
+  </div>
+
+  <!-- Ref tab -->
+  <div id="staff-tab-ref" class="hidden">
+    <div class="card">
+      <div class="card-title">Ваша реферальная ссылка</div>
+      <div class="ref-box" id="staff-ref-link">Загрузка...</div>
+      <button class="btn btn-secondary" onclick="copyRefLink()">📋 Копировать ссылку</button>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--muted)">
+        Поделитесь ссылкой с покупателем. Клиент, пришедший по вашей ссылке, будет привязан к вам.
+      </div>
+    </div>
+  </div>
+
+  <!-- Sale panel (replaces tabs content) -->
+  <div id="staff-sale-panel" class="hidden">
+    <button class="back-btn" onclick="hideSalePanel()">← Назад к поиску</button>
+
+    <div class="sale-client-card">
+      <div class="sale-client-name" id="sale-client-name">—</div>
+      <div class="sale-client-meta" id="sale-client-meta">—</div>
+      <div class="sale-client-balance" id="sale-client-balance">0 баллов</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Оформить продажу</div>
+
+      <div class="input-group">
+        <label class="input-label">Сумма покупки (₽) *</label>
+        <input class="input" id="sale-amount" type="number" min="1" placeholder="0" oninput="updateSaleCalc()">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Списать баллов: <strong id="redeem-val">0</strong></label>
+        <input type="range" id="sale-redeem" min="0" max="0" value="0" oninput="updateRedeemVal()">
+      </div>
+
+      <div class="points-calc" id="sale-calc">Введите сумму покупки</div>
+
+      <button class="btn btn-success" onclick="doAddSale()" style="margin-top:8px">
+        ✅ Оформить продажу
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN ───────────────────────────────────────── -->
+<div id="screen-admin" class="hidden">
+  <div class="header">
+    <div class="header-logo">⚙️</div>
+    <div>
+      <div class="header-title">Техноточка</div>
+      <div class="header-sub">Администратор</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="atab-stats" onclick="adminTab('stats')">Статистика</button>
+    <button class="tab"        id="atab-staff" onclick="adminTab('staff')">Сотрудники</button>
+  </div>
+
+  <div id="admin-tab-stats">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-clients">—</div>
+        <div class="stat-label">Клиентов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-sales">—</div>
+        <div class="stat-label">Продаж</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-revenue">—</div>
+        <div class="stat-label">Оборот (₽)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-points">—</div>
+        <div class="stat-label">Баллов выдано</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Клиенты по уровням</div>
+      <div id="stats-tiers"></div>
+    </div>
+  </div>
+
+  <div id="admin-tab-staff" class="hidden">
+    <div id="staff-list" style="margin-bottom:12px"></div>
+    <button class="btn btn-primary" onclick="showAddStaffModal()">+ Добавить сотрудника</button>
+  </div>
+</div>
+
+<!-- ── ADD STAFF MODAL ─────────────────────────────── -->
+<div id="add-staff-modal" class="modal-overlay hidden" onclick="hideAddStaffModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Добавить сотрудника</div>
+    <div class="input-group">
+      <label class="input-label">Telegram ID *</label>
+      <input class="input" id="new-staff-id" type="number" placeholder="123456789">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Имя *</label>
+      <input class="input" id="new-staff-name" type="text" placeholder="Иван">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Город</label>
+      <input class="input" id="new-staff-city" type="text" placeholder="Алматы">
+    </div>
+    <button class="btn btn-primary" onclick="doAddStaff()">Добавить</button>
+  </div>
+</div>
+
+<!-- ── TOAST ───────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzmKzxEfggbucKwhmyC5aGXjB5yRl07F-0W2QJInVb-aK5lRjOVG1E0mEFJdNZJrOAC3A/exec';
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const tgUser = tg.initDataUnsafe?.user || {};
+const TG_ID  = String(tgUser.id || '');
+
+let saleClientData = null;
+
+// ── Utilities ──────────────────────────────────────────────────────────
+
+function showScreen(id) {
+  ['screen-loading','screen-client','screen-register','screen-staff','screen-admin']
+    .forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = type ? `show ${type}` : 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+async function api(payload) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, tg_id: TG_ID })
+  });
+  return res.json();
+}
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString('ru-RU');
+}
+
+function tierInfo(tier) {
+  return {
+    new:     ['⭐ Новый',      'level-new',     3],
+    regular: ['🌟 Постоянный', 'level-regular', 5],
+    vip:     ['👑 Свой',       'level-vip',     7],
+  }[tier] || ['⭐ Новый', 'level-new', 3];
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  return new Date(str).toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+
+async function init() {
+  if (!TG_ID) {
+    document.querySelector('#screen-loading .loading-text').textContent = 'Откройте через Telegram';
+    return;
+  }
+
+  if (!API_URL) {
+    // Dev mode: показываем клиента с тестовыми данными
+    renderClient({
+      fio: tgUser.first_name ? `${tgUser.first_name} (demo)` : 'Тест Пользователь',
+      balance: 1250,
+      tier: 'regular',
+      tg_id: TG_ID || '123456',
+      history: [
+        { amount: 15000, points_earned: 750, points_redeemed: 0,   created_at: '2026-03-15' },
+        { amount: 8000,  points_earned: 400, points_redeemed: 500, created_at: '2026-02-10' },
+      ]
+    });
+    return;
+  }
+
+  try {
+    const data = await api({ action: 'getRole' });
+
+    if (data.role === 'admin') {
+      showScreen('screen-admin');
+      loadAdminData();
+    } else if (data.role === 'staff') {
+      loadStaff(data);
+    } else {
+      loadClient();
+    }
+  } catch {
+    document.querySelector('#screen-loading .loading-text').textContent = 'Ошибка подключения';
+  }
+}
+
+// ── CLIENT ─────────────────────────────────────────────────────────────
+
+async function loadClient() {
+  try {
+    const data = await api({ action: 'getClient' });
+    if (!data.found) {
+      const startParam = tg.initDataUnsafe?.start_param || '';
+      const fioInput = document.getElementById('reg-fio');
+      if (startParam.startsWith('staff_')) {
+        fioInput.dataset.ref = startParam.replace('staff_', '');
+      }
+      showScreen('screen-register');
+    } else {
+      renderClient(data);
+    }
+  } catch {
+    document.querySelector('#screen-loading .loading-text').textContent = 'Ошибка загрузки';
+  }
+}
+
+function renderClient(data) {
+  const { fio, balance, tier, history = [], tg_id } = data;
+
+  document.getElementById('client-name-header').textContent = fio || tgUser.first_name || 'Привет!';
+  document.getElementById('client-balance').textContent = fmt(balance);
+
+  const [label, cls] = tierInfo(tier);
+  const badge = document.getElementById('client-level-badge');
+  badge.textContent = label;
+  badge.className = `level-badge ${cls}`;
+
+  // QR
+  QRCode.toCanvas(document.getElementById('qr-canvas'), String(tg_id || TG_ID), {
+    width: 180,
+    color: { dark: '#000000', light: '#ffffff' }
+  }, () => {});
+
+  // History
+  const listEl = document.getElementById('client-history-list');
+  listEl.innerHTML = history.length
+    ? history.map(h => `
+        <div class="history-item">
+          <div>
+            <div>${fmt(h.amount)} ₽</div>
+            <div class="history-date">${fmtDate(h.created_at)}</div>
+          </div>
+          <div style="text-align:right">
+            ${h.points_earned   ? `<div class="points-plus">+${fmt(h.points_earned)} баллов</div>`   : ''}
+            ${h.points_redeemed ? `<div class="points-minus">−${fmt(h.points_redeemed)} списано</div>` : ''}
+          </div>
+        </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>';
+
+  showScreen('screen-client');
+}
+
+async function doRegister() {
+  const fio   = document.getElementById('reg-fio').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const ref   = document.getElementById('reg-fio').dataset.ref || '';
+
+  if (!fio || !phone) { showToast('Заполните все поля', 'error'); return; }
+
+  try {
+    const data = await api({ action: 'registerClient', fio, phone, referred_by: ref });
+    if (data.success) {
+      showToast('Добро пожаловать! 🎉', 'success');
+      loadClient();
+    } else {
+      showToast(data.error || 'Ошибка регистрации', 'error');
+    }
+  } catch {
+    showToast('Ошибка сети', 'error');
+  }
+}
+
+// ── STAFF ───────────────────────────────────────────────────────────────
+
+function loadStaff(data) {
+  document.getElementById('staff-name-header').textContent = data.name || tgUser.first_name || 'Сотрудник';
+  document.getElementById('staff-ref-link').textContent = `https://t.me/technobonusbot?start=staff_${TG_ID}`;
+  showScreen('screen-staff');
+}
+
+function staffTab(tab) {
+  ['search','scan','ref'].forEach(t => {
+    document.getElementById(`staff-tab-${t}`).classList.toggle('hidden', t !== tab);
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+  });
+}
+
+async function doSearch() {
+  const q = document.getElementById('search-query').value.trim();
+  if (!q) { showToast('Введите запрос', 'error'); return; }
+
+  const resultsEl = document.getElementById('search-results');
+  resultsEl.innerHTML = '<div class="empty">Поиск...</div>';
+
+  try {
+    const data = await api({ action: 'searchClient', query: q });
+    const clients = data.clients || [];
+
+    resultsEl.innerHTML = clients.length
+      ? clients.map(c => `
+          <div class="client-result" onclick="selectClient('${c.tg_id}')">
+            <div>
+              <div class="client-name">${c.fio}</div>
+              <div class="client-info">${c.phone || ''} · ${tierInfo(c.tier)[0]}</div>
+            </div>
+            <div class="client-balance">${fmt(c.balance)}</div>
+          </div>`).join('')
+      : '<div class="empty"><div class="empty-icon">🔍</div>Клиент не найден</div>';
+  } catch {
+    resultsEl.innerHTML = '<div class="empty">Ошибка поиска</div>';
+  }
+}
+
+async function selectClient(clientTgId) {
+  try {
+    const data = await api({ action: 'getClientById', client_tg_id: clientTgId });
+    if (!data.found) { showToast('Клиент не найден', 'error'); return; }
+    openSalePanel(data);
+  } catch {
+    showToast('Ошибка', 'error');
+  }
+}
+
+function openSalePanel(client) {
+  saleClientData = client;
+  document.getElementById('sale-client-name').textContent    = client.fio;
+  document.getElementById('sale-client-meta').textContent    = `${client.phone || ''} · ${tierInfo(client.tier)[0]}`;
+  document.getElementById('sale-client-balance').textContent = `${fmt(client.balance)} баллов`;
+
+  document.getElementById('sale-amount').value = '';
+  document.getElementById('sale-redeem').value = 0;
+  document.getElementById('sale-redeem').max   = 0;
+  document.getElementById('redeem-val').textContent = '0';
+  document.getElementById('sale-calc').textContent  = 'Введите сумму покупки';
+
+  document.getElementById('staff-tabs').classList.add('hidden');
+  ['search','scan','ref'].forEach(t => document.getElementById(`staff-tab-${t}`).classList.add('hidden'));
+  document.getElementById('staff-sale-panel').classList.remove('hidden');
+}
+
+function hideSalePanel() {
+  document.getElementById('staff-sale-panel').classList.add('hidden');
+  document.getElementById('staff-tabs').classList.remove('hidden');
+  staffTab('search');
+}
+
+function updateSaleCalc() {
+  const amount = parseFloat(document.getElementById('sale-amount').value) || 0;
+  if (!saleClientData || amount <= 0) {
+    document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
+    document.getElementById('sale-redeem').max   = 0;
+    document.getElementById('sale-redeem').value = 0;
+    document.getElementById('redeem-val').textContent = '0';
+    return;
+  }
+
+  const pct      = tierInfo(saleClientData.tier)[2];
+  const earned   = Math.floor(amount * pct / 100);
+  const maxRedeem = Math.min(Number(saleClientData.balance || 0), Math.floor(amount * 0.15));
+
+  const slider = document.getElementById('sale-redeem');
+  slider.max = maxRedeem;
+  if (parseInt(slider.value) > maxRedeem) {
+    slider.value = maxRedeem;
+    document.getElementById('redeem-val').textContent = maxRedeem;
+  }
+
+  document.getElementById('sale-calc').innerHTML =
+    `Кешбэк <strong>${pct}%</strong> → начислим <strong>${fmt(earned)} баллов</strong><br>` +
+    `Максимально списать: <strong>${fmt(maxRedeem)} баллов</strong>`;
+}
+
+function updateRedeemVal() {
+  document.getElementById('redeem-val').textContent = document.getElementById('sale-redeem').value;
+}
+
+async function doAddSale() {
+  const amount = parseFloat(document.getElementById('sale-amount').value);
+  const redeem = parseInt(document.getElementById('sale-redeem').value) || 0;
+
+  if (!amount || amount <= 0) { showToast('Введите сумму', 'error'); return; }
+  if (!saleClientData) return;
+
+  try {
+    const data = await api({
+      action: 'addSale',
+      client_tg_id: saleClientData.tg_id,
+      amount,
+      points_redeemed: redeem
+    });
+    if (data.success) {
+      showToast(`Оформлено! +${fmt(data.points_earned)} баллов`, 'success');
+      hideSalePanel();
+      document.getElementById('search-query').value = '';
+      document.getElementById('search-results').innerHTML = '';
+    } else {
+      showToast(data.error || 'Ошибка оформления', 'error');
+    }
+  } catch {
+    showToast('Ошибка сети', 'error');
+  }
+}
+
+function doScanQR() {
+  tg.showScanQrPopup({ text: 'Наведите на QR-код клиента' }, async (qrText) => {
+    tg.closeScanQrPopup();
+    if (!qrText) return;
+    staffTab('search');
+    await selectClient(qrText.trim());
+  });
+}
+
+function copyRefLink() {
+  const link = document.getElementById('staff-ref-link').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована', 'success'));
+  } else {
+    showToast('Скопируйте ссылку вручную', '');
+  }
+}
+
+// ── ADMIN ───────────────────────────────────────────────────────────────
+
+async function loadAdminData() {
+  try {
+    const [statsData, staffListData] = await Promise.all([
+      api({ action: 'getAdminStats' }),
+      api({ action: 'getStaffList' })
+    ]);
+    renderAdminStats(statsData);
+    renderStaffList(staffListData.staff || []);
+  } catch {
+    showToast('Ошибка загрузки данных', 'error');
+  }
+}
+
+function renderAdminStats(data) {
+  document.getElementById('stat-clients').textContent = fmt(data.total_clients);
+  document.getElementById('stat-sales').textContent   = fmt(data.total_sales);
+  document.getElementById('stat-revenue').textContent = fmt(data.total_revenue);
+  document.getElementById('stat-points').textContent  = fmt(data.total_points_earned);
+
+  const t = data.tiers || {};
+  document.getElementById('stats-tiers').innerHTML = `
+    <div class="cashback-row"><span>⭐ Новый</span><span class="cashback-val">${fmt(t.new)}</span></div>
+    <div class="cashback-row"><span>🌟 Постоянный</span><span class="cashback-val">${fmt(t.regular)}</span></div>
+    <div class="cashback-row"><span>👑 Свой</span><span class="cashback-val">${fmt(t.vip)}</span></div>
+  `;
+}
+
+function renderStaffList(staff) {
+  const listEl = document.getElementById('staff-list');
+  listEl.innerHTML = staff.length
+    ? staff.map((s, i) => `
+        <div class="staff-item">
+          <div>
+            <div class="staff-name">${i + 1}. ${s.name}</div>
+            <div class="staff-meta">${s.city || ''} · ID: ${s.tg_id}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div>
+              <div class="staff-sales">${fmt(s.sales_count)}</div>
+              <div class="staff-sales-lbl">продаж</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="doRemoveStaff('${s.tg_id}','${s.name}')">✕</button>
+          </div>
+        </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">👥</div>Нет сотрудников</div>';
+}
+
+function adminTab(tab) {
+  ['stats','staff'].forEach(t => {
+    document.getElementById(`admin-tab-${t}`).classList.toggle('hidden', t !== tab);
+    document.getElementById(`atab-${t}`).classList.toggle('active', t === tab);
+  });
+}
+
+function showAddStaffModal() { document.getElementById('add-staff-modal').classList.remove('hidden'); }
+function hideAddStaffModal(e) {
+  if (!e || e.target === document.getElementById('add-staff-modal')) {
+    document.getElementById('add-staff-modal').classList.add('hidden');
+  }
+}
+
+async function doAddStaff() {
+  const staff_tg_id = document.getElementById('new-staff-id').value.trim();
+  const name        = document.getElementById('new-staff-name').value.trim();
+  const city        = document.getElementById('new-staff-city').value.trim();
+
+  if (!staff_tg_id || !name) { showToast('Заполните обязательные поля', 'error'); return; }
+
+  try {
+    const data = await api({ action: 'addStaff', staff_tg_id, name, city });
+    if (data.success) {
+      showToast('Сотрудник добавлен', 'success');
+      hideAddStaffModal();
+      ['new-staff-id','new-staff-name','new-staff-city'].forEach(id => document.getElementById(id).value = '');
+      const res = await api({ action: 'getStaffList' });
+      renderStaffList(res.staff || []);
+    } else {
+      showToast(data.error || 'Ошибка', 'error');
+    }
+  } catch {
+    showToast('Ошибка сети', 'error');
+  }
+}
+
+async function doRemoveStaff(staffId, staffName) {
+  tg.showConfirm(`Удалить сотрудника ${staffName}?`, async (ok) => {
+    if (!ok) return;
+    try {
+      const data = await api({ action: 'removeStaff', staff_tg_id: staffId });
+      if (data.success) {
+        showToast('Сотрудник удалён', 'success');
+        const res = await api({ action: 'getStaffList' });
+        renderStaffList(res.staff || []);
+      } else {
+        showToast(data.error || 'Ошибка', 'error');
+      }
+    } catch {
+      showToast('Ошибка сети', 'error');
+    }
+  });
+}
+
+// ── Start ──────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
