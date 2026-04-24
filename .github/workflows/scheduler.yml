@@ -1,0 +1,13 @@
+name: Daily Scheduler
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # 8:00 по Москве (UTC+3)
+  workflow_dispatch:       # можно запустить вручную
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Старт 5-часового окна
+        run: echo "Scheduler запущен в $(date)"
