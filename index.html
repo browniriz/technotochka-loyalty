@@ -354,9 +354,44 @@
 
       .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 12px 0; }
       .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+      /* DEBUG PANEL */
+      #debug-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        background: #7c3aed;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: center;
+        padding: 6px;
+        z-index: 9999;
+        letter-spacing: 0.5px;
+      }
+      #debug-switcher { display: flex; gap: 6px; justify-content: center; margin-top: 4px; }
+      #debug-switcher a {
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        padding: 2px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.3);
+        font-size: 11px;
+      }
+      #debug-switcher a.active { background: rgba(255,255,255,0.25); color: #fff; }
+      body.debug-mode { padding-top: 56px; }
     </style>
   </head>
   <body>
+
+  <!-- ── DEBUG BAR (только при ?debug=role) ───────────── -->
+  <div id="debug-bar" style="display:none">
+    🛠 DEBUG:
+    <div id="debug-switcher">
+      <a href="?debug=admin">👑 Админ</a>
+      <a href="?debug=staff">🧑‍💼 Сотрудник</a>
+      <a href="?debug=client">👤 Клиент</a>
+    </div>
+  </div>
 
   <!-- ── LOADING ─────────────────────────────────────── -->
   <div id="screen-loading">
@@ -595,12 +630,45 @@
   const API_URL =
   'https://script.google.com/macros/s/AKfycbzmKzxEfggbucKwhmyC5aGXjB5yRl07F-0W2QJInVb-aK5lRjOVG1E0mEFJdNZJrOAC3A/exec';
 
-  const tg = window.Telegram.WebApp;
+  // ══════════════════════════════════════════════
+  // 🛠 DEBUG MODE — убрать перед деплоем в прод
+  // Открыть в браузере: index.html?debug=admin
+  //                     index.html?debug=staff
+  //                     index.html?debug=client
+  const DEBUG_IDS = {
+    admin:  '339860192',   // реальный tg_id админа
+    staff:  '111111111',   // tg_id тестового сотрудника
+    client: '222222222',   // tg_id тестового клиента
+  };
+  const _debugParam = new URLSearchParams(location.search).get('debug');
+  const _debugActive = !!_debugParam && DEBUG_IDS[_debugParam];
+  // ══════════════════════════════════════════════
+
+  const tg = window.Telegram?.WebApp || {
+    ready: () => {}, expand: () => {},
+    initDataUnsafe: {},
+    showConfirm: (msg, cb) => cb(window.confirm(msg)),
+    showScanQrPopup: () => alert('QR-сканер доступен только в Telegram'),
+    closeScanQrPopup: () => {},
+    MainButton: { show: () => {}, hide: () => {}, setText: () => {}, onClick: () => {} },
+  };
   tg.ready();
   tg.expand();
 
-  const tgUser = tg.initDataUnsafe?.user || {};
-  const TG_ID  = String(tgUser.id || '');
+  const tgUser = _debugActive
+    ? { id: DEBUG_IDS[_debugParam], first_name: `[${_debugParam.toUpperCase()}]` }
+    : (tg.initDataUnsafe?.user || {});
+  const TG_ID = String(tgUser.id || '');
+
+  // Показать дебаг-бар если активен дебаг-режим
+  if (_debugActive) {
+    document.body.classList.add('debug-mode');
+    const bar = document.getElementById('debug-bar');
+    bar.style.display = 'block';
+    bar.querySelectorAll('#debug-switcher a').forEach(a => {
+      if (a.href.includes('debug=' + _debugParam)) a.classList.add('active');
+    });
+  }
 
   let saleClientData = null;
 
