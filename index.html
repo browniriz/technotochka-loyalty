@@ -1140,7 +1140,7 @@
       if (!this.value) { e.preventDefault(); return; }
 
       const d = getDigits(this.value);
-      if (d.length <= 2) { reset(); e.preventDefault(); return; }
+      if (d.length <= 2) { this.value = ''; e.preventDefault(); return; }
 
       if (this.selectionStart !== this.selectionEnd) return; // есть выделение — браузер сам
 
