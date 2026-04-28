@@ -1110,11 +1110,15 @@
       if (getDigits(this.value).length < 3) this.value = '';
     });
 
-    inp.addEventListener('input', function() {
+    inp.addEventListener('input', function(e) {
       const pos = this.selectionStart;
       const oldVal = this.value;
       const d = getDigits(oldVal);
-      if (!d || d.length <= 2) { reset(); return; }
+      if (!d || d.length <= 2) {
+        if (e.inputType && e.inputType.startsWith('delete')) { this.value = ''; return; }
+        reset();
+        return;
+      }
       this.value = fmt(d);
       // Восстановить позицию курсора: посчитать цифры до курсора в старом значении
       let cnt = 0;
