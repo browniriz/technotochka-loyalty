@@ -1077,19 +1077,21 @@
   // Phone mask: +7 (9XX) XXX-XX-XX
   (function() {
     const inp = document.getElementById('reg-phone');
+    const MIN_POS = 5; // длина '+7 (9'
 
-    function toDigits(v) {
+    function getDigits(v) {
       let d = v.replace(/\D/g, '');
       if (!d) return '';
+      if (d[0] === '8') d = '7' + d.slice(1);
       if (d[0] !== '7') d = '7' + d;
-      if (d.length >= 2 && d[1] !== '9') d = '79' + d.slice(2);
+      if (d.length >= 2 && d[1] !== '9') d = d[0] + '9' + d.slice(1);
       return d.slice(0, 11);
     }
 
-    function fmtPhone(d) {
+    function fmt(d) {
       if (!d) return '';
       let s = '+7';
-      if (d.length < 2) return s;
+      if (d.length <= 1) return s;
       s += ' (' + d.slice(1, 4);
       if (d.length < 4) return s;
       s += ')';
@@ -1099,28 +1101,79 @@
       return s;
     }
 
+    function reset() {
+      inp.value = '+7 (9';
+      setTimeout(() => inp.setSelectionRange(MIN_POS, MIN_POS), 0);
+    }
+
     inp.addEventListener('focus', function() {
-      if (!this.value) {
-        this.value = '+7 (9';
-        setTimeout(() => this.setSelectionRange(5, 5), 0);
-      }
+      if (!this.value) reset();
     });
 
     inp.addEventListener('blur', function() {
-      if (toDigits(this.value).length < 3) this.value = '';
+      if (getDigits(this.value).length < 3) this.value = '';
     });
 
     inp.addEventListener('input', function() {
-      const d = toDigits(this.value);
-      this.value = d ? fmtPhone(d) : '';
+      const pos = this.selectionStart;
+      const oldVal = this.value;
+      const d = getDigits(oldVal);
+      if (!d || d.length <= 2) { reset(); return; }
+      this.value = fmt(d);
+      // Восстановить позицию курсора: посчитать цифры до курсора в старом значении
+      let cnt = 0;
+      for (let i = 0; i < Math.min(pos, oldVal.length); i++) {
+        if (/\d/.test(oldVal[i])) cnt++;
+      }
+      const nv = this.value;
+      let newPos = nv.length, dc = 0;
+      for (let i = 0; i < nv.length; i++) {
+        if (/\d/.test(nv[i])) {
+          dc++;
+          if (dc >= cnt) { newPos = i + 1; break; }
+        }
+      }
+      this.setSelectionRange(Math.max(newPos, MIN_POS), Math.max(newPos, MIN_POS));
     });
 
     inp.addEventListener('keydown', function(e) {
-      if (e.key === 'Backspace' && toDigits(this.value).length <= 2) {
-        this.value = '+7 (9';
-        setTimeout(() => this.setSelectionRange(5, 5), 0);
-        e.preventDefault();
+      if (e.key !== 'Backspace') return;
+
+      const d = getDigits(this.value);
+      if (d.length <= 2) { reset(); e.preventDefault(); return; }
+
+      if (this.selectionStart !== this.selectionEnd) return; // есть выделение — браузер сам
+
+      const v = this.value;
+      const pos = this.selectionStart;
+
+      // Найти предыдущую цифру (пропуская символы маски)
+      let p = pos - 1;
+      while (p >= 0 && !/\d/.test(v[p])) p--;
+
+      // '9' на позиции 4 и '7' на позиции 1 — фиксированные, не удалять
+      if (p <= 1) { reset(); e.preventDefault(); return; }
+      if (p === 4) { e.preventDefault(); return; }
+
+      // Удалить цифру на позиции p
+      const newRaw = v.slice(0, p) + v.slice(p + 1);
+      const newD = getDigits(newRaw);
+      const newV = newD.length > 2 ? fmt(newD) : '+7 (9';
+      this.value = newV;
+
+      // Восстановить позицию курсора
+      let cnt = 0;
+      for (let i = 0; i < p; i++) if (/\d/.test(v[i])) cnt++;
+      let newPos = Math.max(newV.length, MIN_POS), dc = 0;
+      for (let i = 0; i < newV.length; i++) {
+        if (/\d/.test(newV[i])) {
+          dc++;
+          if (dc === cnt) { newPos = i + 1; break; }
+        }
       }
+      if (cnt === 0) newPos = MIN_POS;
+      this.setSelectionRange(Math.max(newPos, MIN_POS), Math.max(newPos, MIN_POS));
+      e.preventDefault();
     });
   })();
 
