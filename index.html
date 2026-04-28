@@ -1111,7 +1111,6 @@
     });
 
     inp.addEventListener('input', function(e) {
-      const pos = this.selectionStart;
       const oldVal = this.value;
       const d = getDigits(oldVal);
       if (!d || d.length <= 2) {
@@ -1120,22 +1119,8 @@
         return;
       }
       this.value = fmt(d);
-      // Восстановить позицию курсора: посчитать цифры до курсора в старом значении
-      let cnt = 0;
-      for (let i = 0; i < Math.min(pos, oldVal.length); i++) {
-        if (/\d/.test(oldVal[i])) cnt++;
-      }
-      const nv = this.value;
-      let newPos = nv.length, dc = 0;
-      for (let i = 0; i < nv.length; i++) {
-        if (/\d/.test(nv[i])) {
-          dc++;
-          if (dc >= cnt) { newPos = i + 1; break; }
-        }
-      }
-      // Перепрыгнуть через символы маски вперёд
-      while (newPos < nv.length && !/\d/.test(nv[newPos])) newPos++;
-      this.setSelectionRange(Math.max(newPos, MIN_POS), Math.max(newPos, MIN_POS));
+      const end = this.value.length;
+      this.setSelectionRange(end, end);
     });
 
     inp.addEventListener('keydown', function(e) {
