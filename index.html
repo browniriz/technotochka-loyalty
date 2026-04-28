@@ -1106,10 +1106,6 @@
       setTimeout(() => inp.setSelectionRange(MIN_POS, MIN_POS), 0);
     }
 
-    inp.addEventListener('focus', function() {
-      if (!this.value) reset();
-    });
-
     inp.addEventListener('blur', function() {
       if (getDigits(this.value).length < 3) this.value = '';
     });
@@ -1133,11 +1129,15 @@
           if (dc >= cnt) { newPos = i + 1; break; }
         }
       }
+      // Перепрыгнуть через символы маски вперёд
+      while (newPos < nv.length && !/\d/.test(nv[newPos])) newPos++;
       this.setSelectionRange(Math.max(newPos, MIN_POS), Math.max(newPos, MIN_POS));
     });
 
     inp.addEventListener('keydown', function(e) {
       if (e.key !== 'Backspace') return;
+
+      if (!this.value) { e.preventDefault(); return; }
 
       const d = getDigits(this.value);
       if (d.length <= 2) { reset(); e.preventDefault(); return; }
