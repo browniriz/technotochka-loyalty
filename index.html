@@ -207,11 +207,17 @@
         background: rgba(39, 16, 73, 0.86);
         border: 1px solid rgba(155, 78, 232, 0.44);
         border-radius: var(--r);
-        padding: 14px 10px;
+        padding: 20px 10px;
         text-align: center;
       }
-      .mini-card-val { font-size: 17px; font-weight: 900; color: #fff64d; }
-      .mini-card-lbl { font-size: 10px; color: var(--muted); margin-top: 5px; }
+      .mini-card-val { font-size: 24px; font-weight: 900; color: #fff64d; line-height: 1; }
+      .mini-card-lbl { font-size: 12px; color: var(--muted); margin-top: 12px; }
+      .mini-icon {
+        width: 26px;
+        height: 26px;
+        margin: 0 auto;
+        display: block;
+      }
       button.mini-card {
         display: block;
         width: 100%;
@@ -305,6 +311,18 @@
       .history-date  { color: var(--muted); font-size: 12px; margin-top: 2px; }
       .points-plus   { color: var(--success); font-size: 13px; }
       .points-minus  { color: var(--danger);  font-size: 13px; }
+      .history-card {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        padding: 18px 0 0;
+      }
+      .history-card .card-title {
+        margin-bottom: 18px;
+      }
+      .history-card .empty {
+        padding: 22px 0;
+      }
 
       .btn {
         display: flex;
@@ -633,21 +651,22 @@
         <div class="progress-label" id="client-progress-label"></div>
         <div class="progress-bar"><div class="progress-fill" id="client-progress-fill" style="width:0%"></div></div>
       </div>
-      <div class="mini-cards">
-        <div class="mini-card">
-          <div class="mini-card-val" id="client-total-year">0 ₽</div>
-          <div class="mini-card-lbl">Куплено за год</div>
-        </div>
-        <div class="mini-card">
-          <div class="mini-card-val" id="client-next-tier">—</div>
-          <div class="mini-card-lbl">Следующий уровень</div>
-        </div>
-      </div>
     </div>
 
     <div class="mini-cards">
       <button class="mini-card btn-secondary" type="button" onclick="toggleQrModal()">
-        <div class="mini-card-val">🔢</div>
+        <div class="mini-card-val">
+          <svg class="mini-icon" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="7" y="8" width="14" height="16" rx="2" fill="#f59e0b"/>
+            <rect x="10" y="11" width="8" height="4" rx="1" fill="#38bdf8"/>
+            <rect x="9" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
+            <rect x="14" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
+            <rect x="19" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
+            <path d="M5 24h19" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+            <path d="M21 11h4a2 2 0 0 1 2 2v11" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <path d="M4 15h3" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
         <div class="mini-card-lbl">Мой QR-код</div>
       </button>
       <button class="mini-card btn-secondary" type="button" onclick="openReferralModal()">
@@ -674,7 +693,7 @@
       <div style="font-size:12px;color:var(--muted)">Списание баллов — до 15% от суммы покупки</div>
     </div>
 
-    <div class="card">
+    <div class="card history-card">
       <div class="card-title">История покупок</div>
       <div id="client-history-list">
         <div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>
@@ -1144,8 +1163,6 @@
     }
     document.getElementById('client-progress-label').textContent     = progressLabel;
     document.getElementById('client-progress-fill').style.width      = progressPct + '%';
-    document.getElementById('client-total-year').textContent         = fmt(total_year) + ' ₽';
-    document.getElementById('client-next-tier').textContent          = nextTierLabel;
 
     QRCode.toCanvas(document.getElementById('qr-canvas'), String(tg_id || TG_ID), {
       width: 240,
