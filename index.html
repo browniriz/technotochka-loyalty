@@ -982,6 +982,15 @@
     return str;
   }
 
+  function normalizePhone(phone) {
+    let digits = String(phone || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits[0] === '8') digits = '7' + digits.slice(1);
+    if (digits.length === 10) digits = '7' + digits;
+    if (digits[0] !== '7') digits = '7' + digits;
+    return digits.slice(0, 11);
+  }
+
   function clientDisplayName(fio = '') {
     const name = String(fio || '').trim();
     if (name) return name;
@@ -1215,10 +1224,11 @@
 
   async function doRegister() {
     const fio   = document.getElementById('reg-fio').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
+    const phone = normalizePhone(document.getElementById('reg-phone').value);
     const ref   = document.getElementById('reg-fio').dataset.ref || '';
 
     if (!fio || !phone) { showToast('Заполните все поля', 'error'); return; }
+    if (phone.length !== 11 || phone[0] !== '7') { showToast('Введите корректный телефон', 'error'); return; }
 
     try {
       const data = await api({ action: 'registerClient', fio, phone, referred_by: ref });

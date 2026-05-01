@@ -114,10 +114,22 @@ function registerClient(body) {
   if (existing.found) return { success: true, client: existing.client, already_exists: true };
   const sheet = SHEETS.clients();
   const referredBy = body.referred_by ? String(body.referred_by).replace(/^(staff_|client_)/, '') : '';
-  sheet.appendRow([tgId, body.fio || '', body.phone || '', tgId, 0, 0,
+  const phone = normalizePhone(body.phone);
+  sheet.getRange('C:C').setNumberFormat('@');
+  sheet.appendRow([tgId, body.fio || '', phone, tgId, 0, 0,
     TIERS[0].name, referredBy, formatDate(new Date())]);
+  sheet.getRange(sheet.getLastRow(), 3).setNumberFormat('@').setValue(phone);
   const referralBonus = awardClientReferralBonus(referredBy, tgId);
   return { success: true, client: getClient(tgId).client, referral_bonus: referralBonus };
+}
+
+function normalizePhone(phone) {
+  let digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits[0] === '8') digits = '7' + digits.slice(1);
+  if (digits.length === 10) digits = '7' + digits;
+  if (digits[0] !== '7') digits = '7' + digits;
+  return digits.slice(0, 11);
 }
 
 function awardClientReferralBonus(referrerTgId, newClientTgId) {
