@@ -772,7 +772,8 @@
   <div id="toast"></div>
 
   <script>
-  const API_URL = '';
+  const API_URL =
+  'https://script.google.com/macros/s/AKfycbzmKzxEfggbucKwhmyC5aGXjB5yRl07F-0W2QJInVb-aK5lRjOVG1E0mEFJdNZJrOAC3A/exec';
 
   // ══════════════════════════════════════════════
   // 🛠 DEBUG MODE — убрать перед деплоем в прод
@@ -893,7 +894,8 @@
         loadStaff({ name: 'Михаил Степанов' });
         return;
       }
-      renderClient({
+      if (_debugParam === 'client') {
+        renderClient({
         fio: tgUser.first_name ? `${tgUser.first_name} (demo)` : 'Тест Пользователь',
         balance: 1250,
         tier: 'Постоянный',
@@ -903,7 +905,10 @@
           { amount: 15000, points_earned: 750, points_redeemed: 0,   date: '15.03.2026 10:20' },
           { amount: 8000,  points_earned: 400, points_redeemed: 500, date: '10.02.2026 15:45' },
         ]
-      });
+        });
+        return;
+      }
+      document.querySelector('#screen-loading .loading-text').textContent = 'API_URL не настроен';
       return;
     }
 
@@ -1020,7 +1025,7 @@
     document.getElementById('staff-name-header').textContent = data.name || tgUser.first_name || 'Сотрудник';
     document.getElementById('staff-ref-link').textContent = `https://t.me/technobonusbot?start=staff_${TG_ID}`;
     showScreen('screen-staff');
-    if (!API_URL) {
+    if (!API_URL && _debugActive) {
       document.getElementById('search-results').innerHTML = `
         <div class="client-result" onclick="selectClient('222222222')">
           <div>
@@ -1046,7 +1051,7 @@
     const resultsEl = document.getElementById('search-results');
     resultsEl.innerHTML = '<div class="empty">Поиск...</div>';
 
-    if (!API_URL) {
+    if (!API_URL && _debugActive) {
       resultsEl.innerHTML = `
         <div class="client-result" onclick="selectClient('222222222')">
           <div>
@@ -1078,7 +1083,7 @@
   }
 
   async function selectClient(clientTgId) {
-    if (!API_URL) {
+    if (!API_URL && _debugActive) {
       openSalePanel({
         tg_id: clientTgId,
         fio: 'Алексей Коваленко',
