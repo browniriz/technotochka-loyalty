@@ -113,9 +113,30 @@ function registerClient(body) {
   const existing = getClient(tgId);
   if (existing.found) return { success: true, client: existing.client, already_exists: true };
   const sheet = SHEETS.clients();
+  const referredBy = body.referred_by ? String(body.referred_by).replace(/^(staff_|client_)/, '') : '';
   sheet.appendRow([tgId, body.fio || '', body.phone || '', tgId, 0, 0,
-    TIERS[0].name, body.referred_by ? String(body.referred_by) : '', formatDate(new Date())]);
-  return { success: true, client: getClient(tgId).client };
+    TIERS[0].name, referredBy, formatDate(new Date())]);
+  const referralBonus = awardClientReferralBonus(referredBy, tgId);
+  return { success: true, client: getClient(tgId).client, referral_bonus: referralBonus };
+}
+
+function awardClientReferralBonus(referrerTgId, newClientTgId) {
+  const bonus = 50;
+  if (!referrerTgId || String(referrerTgId) === String(newClientTgId)) return 0;
+
+  const sheet = SHEETS.clients();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(referrerTgId)) {
+      const row = i + 1;
+      const balance = Number(data[i][4]) || 0;
+      sheet.getRange(row, 5).setValue(balance + bonus);
+      SHEETS.sales().appendRow(['ref_' + new Date().getTime().toString(), String(referrerTgId), 'referral_' + String(newClientTgId),
+        0, bonus, 0, formatDate(new Date())]);
+      return bonus;
+    }
+  }
+  return 0;
 }
 
 function searchClient(query) {

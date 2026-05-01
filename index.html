@@ -164,6 +164,40 @@
       .level-regular { background: rgba(248, 200, 78, 0.14); color: #ffd92d; }
       .level-vip     { background: linear-gradient(135deg, rgba(155,78,232,0.42), rgba(248,200,78,0.17)); color: #fff7d6; }
 
+      .client-profile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+      }
+      .client-avatar {
+        width: 78px;
+        height: 78px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: var(--brand-gradient);
+        border: 2px solid rgba(248, 200, 78, 0.5);
+        box-shadow: 0 0 0 4px rgba(248, 200, 78, 0.08), 0 20px 44px rgba(0,0,0,0.35);
+        color: #fff;
+        font-size: 26px;
+        font-weight: 900;
+      }
+      .client-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .client-name-main {
+        font-size: 20px;
+        line-height: 1.15;
+        font-weight: 900;
+        text-align: center;
+      }
+
       .progress-wrap { margin-top: 18px; }
       .progress-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
       .progress-bar { height: 7px; background: rgba(255,255,255,0.11); border-radius: 999px; overflow: hidden; }
@@ -178,6 +212,13 @@
       }
       .mini-card-val { font-size: 17px; font-weight: 900; color: #fff64d; }
       .mini-card-lbl { font-size: 10px; color: var(--muted); margin-top: 5px; }
+      button.mini-card {
+        display: block;
+        width: 100%;
+        color: var(--text);
+        cursor: pointer;
+        font-family: inherit;
+      }
 
       .cashback-row {
         display: flex;
@@ -202,6 +243,55 @@
         box-shadow: 0 12px 32px rgba(0,0,0,0.28);
       }
       .qr-hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+      .app-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 160;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(6, 2, 14, 0.82);
+        backdrop-filter: blur(12px);
+      }
+      .overlay-panel {
+        width: min(100%, 360px);
+        border-radius: 24px;
+        border: 1px solid rgba(155, 78, 232, 0.4);
+        background: linear-gradient(160deg, rgba(33, 14, 62, 0.98), rgba(13, 6, 29, 0.98));
+        box-shadow: 0 28px 90px rgba(0,0,0,0.55);
+        padding: 20px;
+      }
+      .overlay-title {
+        font-size: 18px;
+        font-weight: 900;
+        text-align: center;
+        margin-bottom: 14px;
+      }
+      .qr-bright-card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 22px;
+        display: flex;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .qr-bright-card #qr-canvas {
+        box-shadow: none;
+        padding: 0;
+      }
+      .ref-link-box {
+        background: rgba(31, 13, 59, 0.9);
+        border: 1px dashed rgba(248,200,78,0.5);
+        border-radius: 14px;
+        padding: 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+        word-break: break-all;
+        margin-bottom: 14px;
+      }
 
       .history-item {
         display: flex;
@@ -467,6 +557,11 @@
         padding-top: 62px;
       }
 
+      #screen-client .header,
+      .qr-card {
+        display: none;
+      }
+
       /* DEBUG PANEL */
       #debug-bar {
         position: fixed;
@@ -523,8 +618,15 @@
 
     <div class="card balance-card">
       <div class="card-title">Бонусный баланс</div>
+      <div class="client-profile">
+        <div class="client-avatar" id="client-avatar">
+          <span id="client-avatar-initials">--</span>
+          <img id="client-avatar-img" class="hidden" alt="">
+        </div>
+        <div class="client-name-main" id="client-name-main">Привет!</div>
+        <div id="client-level-badge" class="level-badge level-new">⭐ Новый · 3% кешбэк</div>
+      </div>
       <div class="balance-big" id="client-balance">0</div>
-      <div id="client-level-badge" class="level-badge level-new">⭐ Новый</div>
       <div class="balance-label">баллов на счету</div>
 
       <div class="progress-wrap">
@@ -544,11 +646,11 @@
     </div>
 
     <div class="mini-cards">
-      <button class="mini-card btn-secondary" type="button" onclick="document.getElementById('qr-canvas-wrapper').scrollIntoView({behavior:'smooth',block:'center'})">
+      <button class="mini-card btn-secondary" type="button" onclick="toggleQrModal()">
         <div class="mini-card-val">🔢</div>
         <div class="mini-card-lbl">Мой QR-код</div>
       </button>
-      <button class="mini-card btn-secondary" type="button" onclick="showToast('Реферальная ссылка доступна у сотрудника', '')">
+      <button class="mini-card btn-secondary" type="button" onclick="openReferralModal()">
         <div class="mini-card-val">🎁</div>
         <div class="mini-card-lbl">Реферал</div>
       </button>
@@ -572,19 +674,30 @@
       <div style="font-size:12px;color:var(--muted)">Списание баллов — до 15% от суммы покупки</div>
     </div>
 
-    <div class="card qr-card">
-      <div class="card-title">Мой QR-код</div>
-      <div id="qr-canvas-wrapper">
-        <canvas id="qr-canvas"></canvas>
-      </div>
-      <div class="qr-hint">Покажите кассиру для начисления бонусов</div>
-    </div>
-
     <div class="card">
       <div class="card-title">История покупок</div>
       <div id="client-history-list">
         <div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>
       </div>
+    </div>
+  </div>
+
+  <div id="qr-modal" class="app-overlay hidden" onclick="closeQrModal(event)">
+    <div class="overlay-panel" onclick="event.stopPropagation()">
+      <div class="overlay-title">Мой QR-код</div>
+      <div class="qr-bright-card" id="qr-canvas-wrapper" onclick="closeQrModal()">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <div class="qr-hint">Нажмите на QR-код, чтобы закрыть</div>
+    </div>
+  </div>
+
+  <div id="referral-modal" class="app-overlay hidden" onclick="closeReferralModal(event)">
+    <div class="overlay-panel" onclick="event.stopPropagation()">
+      <div class="overlay-title">Пригласить друга</div>
+      <div class="ref-link-box" id="client-ref-link">Загрузка...</div>
+      <button class="btn btn-primary" onclick="copyClientRefLink()">📋 Скопировать ссылку</button>
+      <button class="btn btn-secondary" onclick="closeReferralModal()" style="margin-top:10px">Закрыть</button>
     </div>
   </div>
 
@@ -816,6 +929,8 @@
   }
 
   let saleClientData = null;
+  let currentClientId = '';
+  let wakeLock = null;
 
   function showScreen(id) {
     ['screen-loading','screen-client','screen-register','screen-staff','screen-admin']
@@ -867,13 +982,33 @@
     return str;
   }
 
+  function clientDisplayName(fio = '') {
+    const name = String(fio || '').trim();
+    if (name) return name;
+    return [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || 'Клиент';
+  }
+
+  function getInitials(name) {
+    return String(name || 'Клиент')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part[0] || '')
+      .join('')
+      .toUpperCase();
+  }
+
+  function clientRefLink() {
+    return `https://t.me/technobonusbot?start=client_${currentClientId || TG_ID}`;
+  }
+
   async function init() {
     if (!TG_ID) {
       document.querySelector('#screen-loading .loading-text').textContent = 'Откройте через Telegram';
       return;
     }
 
-    if (!API_URL) {
+    if (_debugActive) {
       if (_debugParam === 'admin') {
         showScreen('screen-admin');
         renderAdminStats({
@@ -896,8 +1031,8 @@
       }
       if (_debugParam === 'client') {
         renderClient({
-        fio: tgUser.first_name ? `${tgUser.first_name} (demo)` : 'Тест Пользователь',
-        balance: 1250,
+        fio: 'Алексей Коваленко',
+        balance: 2840,
         tier: 'Постоянный',
         total_year: 18500,
         tg_id: TG_ID || '123456',
@@ -908,6 +1043,9 @@
         });
         return;
       }
+    }
+
+    if (!API_URL) {
       document.querySelector('#screen-loading .loading-text').textContent = 'API_URL не настроен';
       return;
     }
@@ -932,8 +1070,8 @@
       const data = await api({ action: 'getClient' });
       if (!data.found) {
         const startParam = tg.initDataUnsafe?.start_param || '';
-        if (startParam.startsWith('staff_')) {
-          document.getElementById('reg-fio').dataset.ref = startParam.replace('staff_', '');
+        if (startParam.startsWith('staff_') || startParam.startsWith('client_')) {
+          document.getElementById('reg-fio').dataset.ref = startParam.replace(/^(staff_|client_)/, '');
         }
         showScreen('screen-register');
       } else {
@@ -946,14 +1084,36 @@
 
   function renderClient(data) {
     const { fio, balance, tier, total_year = 0, history = [], tg_id } = data;
+    currentClientId = String(tg_id || TG_ID);
+    const displayName = clientDisplayName(fio);
 
-    document.getElementById('client-name-header').textContent = fio || tgUser.first_name || 'Привет!';
+    document.getElementById('client-name-header').textContent = displayName;
+    document.getElementById('client-name-main').textContent = displayName;
     document.getElementById('client-balance').textContent = fmt(balance);
 
-    const [label, cls] = tierInfo(tier);
+    const [label, cls, pct] = tierInfo(tier);
     const badge = document.getElementById('client-level-badge');
-    badge.textContent = label;
+    badge.textContent = `${label} · ${pct}% кешбэк`;
     badge.className = `level-badge ${cls}`;
+
+    const avatarImg = document.getElementById('client-avatar-img');
+    const avatarInitials = document.getElementById('client-avatar-initials');
+    avatarInitials.textContent = getInitials(displayName);
+    avatarImg.classList.add('hidden');
+    avatarImg.removeAttribute('src');
+    if (tgUser.photo_url) {
+      avatarImg.onload = () => {
+        avatarImg.classList.remove('hidden');
+        avatarInitials.classList.add('hidden');
+      };
+      avatarImg.onerror = () => {
+        avatarImg.classList.add('hidden');
+        avatarInitials.classList.remove('hidden');
+      };
+      avatarImg.src = tgUser.photo_url;
+    } else {
+      avatarInitials.classList.remove('hidden');
+    }
 
     // Progress bar to next tier
     const TIER_LEVELS = [
@@ -979,16 +1139,17 @@
     document.getElementById('client-next-tier').textContent          = nextTierLabel;
 
     QRCode.toCanvas(document.getElementById('qr-canvas'), String(tg_id || TG_ID), {
-      width: 180,
+      width: 240,
       color: { dark: '#000000', light: '#ffffff' }
     }, () => {});
+    document.getElementById('client-ref-link').textContent = clientRefLink();
 
     const listEl = document.getElementById('client-history-list');
     listEl.innerHTML = history.length
       ? history.map(h => `
           <div class="history-item">
             <div>
-              <div>${fmt(h.amount)} ₽</div>
+              <div>${Number(h.amount) > 0 ? `${fmt(h.amount)} ₽` : 'Реферальный бонус'}</div>
               <div class="history-date">${fmtDate(h.date)}</div>
             </div>
             <div style="text-align:right">
@@ -999,6 +1160,57 @@
       : '<div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>';
 
     showScreen('screen-client');
+  }
+
+  async function requestScreenWake() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch {
+      wakeLock = null;
+    }
+  }
+
+  async function releaseScreenWake() {
+    if (!wakeLock) return;
+    try { await wakeLock.release(); } catch {}
+    wakeLock = null;
+  }
+
+  async function toggleQrModal() {
+    const modal = document.getElementById('qr-modal');
+    if (!modal.classList.contains('hidden')) {
+      closeQrModal();
+      return;
+    }
+    modal.classList.remove('hidden');
+    await requestScreenWake();
+  }
+
+  function closeQrModal(e) {
+    if (e && e.target !== document.getElementById('qr-modal')) return;
+    document.getElementById('qr-modal').classList.add('hidden');
+    releaseScreenWake();
+  }
+
+  function openReferralModal() {
+    document.getElementById('client-ref-link').textContent = clientRefLink();
+    document.getElementById('referral-modal').classList.remove('hidden');
+  }
+
+  function closeReferralModal(e) {
+    if (e && e.target !== document.getElementById('referral-modal')) return;
+    document.getElementById('referral-modal').classList.add('hidden');
+  }
+
+  function copyClientRefLink() {
+    const link = clientRefLink();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована', 'success'));
+    } else {
+      showToast(link, '');
+    }
   }
 
   async function doRegister() {
