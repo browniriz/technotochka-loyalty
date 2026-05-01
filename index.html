@@ -104,6 +104,15 @@
       .level-regular { background: #1c3a2b; color: #4ade80; }
       .level-vip     { background: #2d1f4a; color: #a78bfa; }
 
+      .progress-wrap { margin-top: 14px; }
+      .progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+      .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
+      .mini-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+      .mini-card { background: var(--surface2); border-radius: 10px; padding: 12px; text-align: center; }
+      .mini-card-val { font-size: 17px; font-weight: 700; color: var(--text); }
+      .mini-card-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
       .cashback-row {
         display: flex;
         justify-content: space-between;
@@ -414,6 +423,21 @@
       <div class="balance-big" id="client-balance">0</div>
       <div class="balance-label">баллов · 1 балл = 1 ₽</div>
       <div id="client-level-badge" class="level-badge level-new">⭐ Новый</div>
+
+      <div class="progress-wrap">
+        <div class="progress-label" id="client-progress-label"></div>
+        <div class="progress-bar"><div class="progress-fill" id="client-progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="mini-cards">
+        <div class="mini-card">
+          <div class="mini-card-val" id="client-total-year">0 ₽</div>
+          <div class="mini-card-lbl">Куплено за год</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-val" id="client-next-tier">—</div>
+          <div class="mini-card-lbl">Следующий уровень</div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -619,6 +643,13 @@
         <label class="input-label">Город</label>
         <input class="input" id="new-staff-city" type="text" placeholder="Алматы">
       </div>
+      <div class="input-group">
+        <label class="input-label">Роль</label>
+        <select class="input" id="new-staff-role">
+          <option value="staff">Сотрудник</option>
+          <option value="admin">Администратор</option>
+        </select>
+      </div>
       <button class="btn btn-primary" onclick="doAddStaff()">Добавить</button>
     </div>
   </div>
@@ -689,9 +720,7 @@
 
   async function api(params) {
     try {
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      if (tgUser?.id) params.tg_id = String(tgUser.id);
-
+      if (TG_ID) params.tg_id = TG_ID;
       const url = API_URL + '?data=' + encodeURIComponent(JSON.stringify(params));
       const response = await fetch(url);
       const text = await response.text();
@@ -707,16 +736,21 @@
   }
 
   function tierInfo(tier) {
-    return {
-      new:     ['⭐ Новый',      'level-new',     3],
-      regular: ['🌟 Постоянный', 'level-regular', 5],
-      vip:     ['👑 Свой',       'level-vip',     7],
-    }[tier] || ['⭐ Новый', 'level-new', 3];
+    const map = {
+      'Новый':      ['⭐ Новый',      'level-new',     3],
+      'Постоянный': ['🌟 Постоянный', 'level-regular', 5],
+      'Свой':       ['👑 Свой',       'level-vip',     7],
+    };
+    return map[tier] || map['Новый'];
   }
 
   function fmtDate(str) {
     if (!str) return '';
-    return new Date(str).toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit' });
+    // Apps Script format: "dd.MM.yyyy HH:mm"
+    if (str.includes('.')) return str.split(' ')[0];
+    const d = new Date(str);
+    if (!isNaN(d)) return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return str;
   }
 
   async function init() {
@@ -729,11 +763,12 @@
       renderClient({
         fio: tgUser.first_name ? `${tgUser.first_name} (demo)` : 'Тест Пользователь',
         balance: 1250,
-        tier: 'regular',
+        tier: 'Постоянный',
+        total_year: 18500,
         tg_id: TG_ID || '123456',
         history: [
-          { amount: 15000, points_earned: 750, points_redeemed: 0,   created_at: '2026-03-15' },
-          { amount: 8000,  points_earned: 400, points_redeemed: 500, created_at: '2026-02-10' },
+          { amount: 15000, points_earned: 750, points_redeemed: 0,   date: '15.03.2026 10:20' },
+          { amount: 8000,  points_earned: 400, points_redeemed: 500, date: '10.02.2026 15:45' },
         ]
       });
       return;
@@ -764,7 +799,7 @@
         }
         showScreen('screen-register');
       } else {
-        renderClient(data);
+        renderClient(data.client);
       }
     } catch {
       document.querySelector('#screen-loading .loading-text').textContent = 'Ошибка загрузки';
@@ -772,7 +807,7 @@
   }
 
   function renderClient(data) {
-    const { fio, balance, tier, history = [], tg_id } = data;
+    const { fio, balance, tier, total_year = 0, history = [], tg_id } = data;
 
     document.getElementById('client-name-header').textContent = fio || tgUser.first_name || 'Привет!';
     document.getElementById('client-balance').textContent = fmt(balance);
@@ -781,6 +816,29 @@
     const badge = document.getElementById('client-level-badge');
     badge.textContent = label;
     badge.className = `level-badge ${cls}`;
+
+    // Progress bar to next tier
+    const TIER_LEVELS = [
+      { name: 'Новый',      min: 0,     max: 10000, next: 'Постоянный' },
+      { name: 'Постоянный', min: 10000, max: 40000, next: 'Свой' },
+      { name: 'Свой',       min: 40000, max: Infinity, next: null },
+    ];
+    const ct = TIER_LEVELS.find(t => t.name === tier) || TIER_LEVELS[0];
+    let progressPct, progressLabel, nextTierLabel;
+    if (ct.next) {
+      progressPct  = Math.min(100, Math.round((total_year - ct.min) / (ct.max - ct.min) * 100));
+      const left   = fmt(Math.max(0, ct.max - total_year));
+      progressLabel = `До уровня ${ct.next} — ${left} ₽`;
+      nextTierLabel = ct.next;
+    } else {
+      progressPct   = 100;
+      progressLabel = 'Максимальный уровень достигнут 🎉';
+      nextTierLabel = '👑 Максимум';
+    }
+    document.getElementById('client-progress-label').textContent     = progressLabel;
+    document.getElementById('client-progress-fill').style.width      = progressPct + '%';
+    document.getElementById('client-total-year').textContent         = fmt(total_year) + ' ₽';
+    document.getElementById('client-next-tier').textContent          = nextTierLabel;
 
     QRCode.toCanvas(document.getElementById('qr-canvas'), String(tg_id || TG_ID), {
       width: 180,
@@ -793,7 +851,7 @@
           <div class="history-item">
             <div>
               <div>${fmt(h.amount)} ₽</div>
-              <div class="history-date">${fmtDate(h.created_at)}</div>
+              <div class="history-date">${fmtDate(h.date)}</div>
             </div>
             <div style="text-align:right">
               ${h.points_earned   ? `<div class="points-plus">+${fmt(h.points_earned)} баллов</div>`   : ''}
@@ -987,15 +1045,15 @@
 
   function renderAdminStats(data) {
     document.getElementById('stat-clients').textContent = fmt(data.total_clients);
-    document.getElementById('stat-sales').textContent   = fmt(data.total_sales);
-    document.getElementById('stat-revenue').textContent = fmt(data.total_revenue);
-    document.getElementById('stat-points').textContent  = fmt(data.total_points_earned);
+    document.getElementById('stat-sales').textContent   = fmt(data.month_sales_count);
+    document.getElementById('stat-revenue').textContent = fmt(data.month_sales_amount);
+    document.getElementById('stat-points').textContent  = fmt(data.total_points_issued);
 
     const t = data.tiers || {};
     document.getElementById('stats-tiers').innerHTML = `
-      <div class="cashback-row"><span>⭐ Новый</span><span class="cashback-val">${fmt(t.new)}</span></div>
-      <div class="cashback-row"><span>🌟 Постоянный</span><span class="cashback-val">${fmt(t.regular)}</span></div>
-      <div class="cashback-row"><span>👑 Свой</span><span class="cashback-val">${fmt(t.vip)}</span></div>
+      <div class="cashback-row"><span>⭐ Новый</span><span class="cashback-val">${fmt(t['Новый'])}</span></div>
+      <div class="cashback-row"><span>🌟 Постоянный</span><span class="cashback-val">${fmt(t['Постоянный'])}</span></div>
+      <div class="cashback-row"><span>👑 Свой</span><span class="cashback-val">${fmt(t['Свой'])}</span></div>
     `;
   }
 
@@ -1005,15 +1063,16 @@
       ? staff.map((s, i) => `
           <div class="staff-item">
             <div>
-              <div class="staff-name">${i + 1}. ${s.name}</div>
+              <div class="staff-name">${i + 1}. ${s.name}${s.role === 'admin' ? ' 👑' : ''}</div>
               <div class="staff-meta">${s.city || ''} · ID: ${s.tg_id}</div>
+              <div class="staff-meta">Приглашено: ${s.invited_clients} кл.</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <div>
-                <div class="staff-sales">${fmt(s.sales_count)}</div>
-                <div class="staff-sales-lbl">продаж</div>
+                <div class="staff-sales">${fmt(s.month_sales_count)}</div>
+                <div class="staff-sales-lbl">${fmt(s.month_sales_amount)} ₽</div>
               </div>
-              <button class="btn btn-danger btn-sm" onclick="doRemoveStaff('${s.tg_id}','${s.name}')">✕</button>
+              ${s.tg_id !== TG_ID ? `<button class="btn btn-danger btn-sm" onclick="doRemoveStaff('${s.tg_id}','${s.name}')">✕</button>` : '<div style="width:36px"></div>'}
             </div>
           </div>`).join('')
       : '<div class="empty"><div class="empty-icon">👥</div>Нет сотрудников</div>';
@@ -1041,11 +1100,13 @@
     if (!staff_tg_id || !name) { showToast('Заполните обязательные поля', 'error'); return; }
 
     try {
-      const data = await api({ action: 'addStaff', staff_tg_id, name, city });
+      const role = document.getElementById('new-staff-role').value;
+      const data = await api({ action: 'addStaff', tg_id: staff_tg_id, name, city, role });
       if (data.success) {
         showToast('Сотрудник добавлен', 'success');
         hideAddStaffModal();
         ['new-staff-id','new-staff-name','new-staff-city'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('new-staff-role').value = 'staff';
         const res = await api({ action: 'getStaffList' });
         renderStaffList(res.staff || []);
       } else {
