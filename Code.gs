@@ -231,13 +231,19 @@ function getSalesHistory(tgId) {
   return history;
 }
 
+function parseRuDate(str) {
+  const m = String(str || '').match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
+  if (!m) return new Date(NaN);
+  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
+}
+
 function getAdminStats() {
   const clients = SHEETS.clients().getDataRange().getValues();
   const sales   = SHEETS.sales().getDataRange().getValues();
   const now = new Date();
   let monthSales = 0, monthAmount = 0, totalPoints = 0;
   for (let i = 1; i < sales.length; i++) {
-    const d      = new Date(String(sales[i][6] || ''));
+    const d      = parseRuDate(sales[i][6]);
     const earned = Number(sales[i][4]) || 0;
     totalPoints += earned;
     if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
@@ -265,7 +271,7 @@ function getStaffList() {
     let salesCount = 0, salesAmount = 0, invitedCount = 0;
     for (let j = 1; j < salesData.length; j++) {
       if (String(salesData[j][2]) === tgId) {
-        const d = new Date(String(salesData[j][6] || ''));
+        const d = parseRuDate(salesData[j][6]);
         if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
           salesCount++;
           salesAmount += Number(salesData[j][3]) || 0;
