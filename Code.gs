@@ -285,7 +285,8 @@ function getStaffList() {
   const now  = new Date();
   const list = [];
   for (let i = 1; i < staffData.length; i++) {
-    const tgId = String(staffData[i][0]);
+    const tgId   = String(staffData[i][0]);
+    const refCode = String(staffData[i][3] || '');
     let salesCount = 0, salesAmount = 0, invitedCount = 0;
     for (let j = 1; j < salesData.length; j++) {
       if (String(salesData[j][2]) === tgId) {
@@ -294,7 +295,8 @@ function getStaffList() {
       }
     }
     for (let k = 1; k < clientData.length; k++) {
-      if (String(clientData[k][7]) === tgId) invitedCount++;
+      const ref = String(clientData[k][7] || '');
+      if (ref === tgId || ref === refCode) invitedCount++;
     }
     list.push({ tg_id: tgId, name: staffData[i][1] || '', role: staffData[i][2] || 'staff',
       ref_code: staffData[i][3] || '', city: staffData[i][4] || '',
