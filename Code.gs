@@ -242,9 +242,13 @@ function getAdminStats() {
   const clients = SHEETS.clients().getDataRange().getValues();
   const sales   = SHEETS.sales().getDataRange().getValues();
   const now = new Date();
+  Logger.log('NOW: month=%s year=%s', now.getMonth(), now.getFullYear());
+  Logger.log('Sales rows: %s', sales.length - 1);
   let monthSales = 0, monthAmount = 0, totalPoints = 0;
   for (let i = 1; i < sales.length; i++) {
-    const d      = parseRuDate(sales[i][6]);
+    const raw = sales[i][6];
+    const d   = parseRuDate(raw);
+    Logger.log('Row %s: raw=%s type=%s parsed=%s month=%s year=%s', i, raw, typeof raw, d, d.getMonth(), d.getFullYear());
     const earned = Number(sales[i][4]) || 0;
     totalPoints += earned;
     if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
