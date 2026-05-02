@@ -611,6 +611,18 @@
       .filter-dates { display:flex; gap:8px; }
       .filter-dates .date-wrap { flex:1; display:flex; flex-direction:column; gap:4px; }
       .filter-dates label { font-size:11px; color:var(--muted); }
+
+      .staff-avatar {
+        width: 58px; height: 58px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(145deg, #7b35dc, #5630bc);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; font-weight: 800; color: #fff; overflow: hidden;
+        border: 2px solid rgba(155,78,232,0.5);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      }
+      .staff-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .staff-header-name { font-size: 17px; font-weight: 800; line-height: 1.2; }
+      .staff-header-meta { font-size: 12px; color: var(--muted); margin-top: 5px; }
     </style>
   </head>
   <body>
@@ -757,17 +769,20 @@
   <!-- ── STAFF ───────────────────────────────────────── -->
   <div id="screen-staff" class="hidden">
     <div class="header">
-      <div class="header-logo">🛒</div>
+      <div class="staff-avatar" id="staff-avatar">
+        <span id="staff-avatar-initials"></span>
+      </div>
       <div>
-        <div class="header-title">Техноточка</div>
-        <div class="header-sub" id="staff-name-header">Сотрудник</div>
+        <div class="staff-header-name" id="staff-name-header">—</div>
+        <div class="staff-header-meta" id="staff-role-city">Сотрудник</div>
       </div>
     </div>
 
     <div class="tabs" id="staff-tabs">
-      <button class="tab active" id="tab-search" onclick="staffTab('search')">Поиск</button>
-      <button class="tab"        id="tab-scan"   onclick="staffTab('scan')">Сканер QR</button>
-      <button class="tab"        id="tab-ref"    onclick="staffTab('ref')">Реферал</button>
+      <button class="tab active" id="tab-search"  onclick="staffTab('search')">Поиск</button>
+      <button class="tab"        id="tab-scan"    onclick="staffTab('scan')">Сканер QR</button>
+      <button class="tab"        id="tab-ref"     onclick="staffTab('ref')">Реферал</button>
+      <button class="tab"        id="tab-mysales" onclick="staffTab('mysales')">Продажи</button>
     </div>
 
     <div id="staff-tab-search">
@@ -803,6 +818,37 @@
       </div>
     </div>
 
+    <div id="staff-tab-mysales" class="hidden">
+      <div class="card" style="padding:14px 16px;margin-bottom:12px">
+        <div class="filter-row">
+          <button class="filter-pill active" onclick="setStaffSalesPeriod('all',this)">Всё время</button>
+          <button class="filter-pill" onclick="setStaffSalesPeriod('7d',this)">7 дней</button>
+          <button class="filter-pill" onclick="setStaffSalesPeriod('30d',this)">30 дней</button>
+          <button class="filter-pill" onclick="setStaffSalesPeriod('year',this)">Год</button>
+        </div>
+        <div class="filter-dates">
+          <div class="date-wrap">
+            <label>С</label>
+            <input type="date" id="staff-sales-from" class="input" style="padding:8px 10px;font-size:13px" onchange="applyStaffSalesFilter()">
+          </div>
+          <div class="date-wrap">
+            <label>По</label>
+            <input type="date" id="staff-sales-to" class="input" style="padding:8px 10px;font-size:13px" onchange="applyStaffSalesFilter()">
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="staff-stat-count">—</div>
+          <div class="stat-label">Продаж</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="staff-stat-amount">—</div>
+          <div class="stat-label">Сумма (₽)</div>
+        </div>
+      </div>
+    </div>
+
     <div id="staff-sale-panel" class="hidden">
       <button class="back-btn" onclick="hideSalePanel()">← Назад к поиску</button>
 
@@ -821,8 +867,13 @@
         </div>
 
         <div class="input-group">
-          <label class="input-label">Списать баллов: <strong id="redeem-val">0</strong></label>
-          <input type="range" id="sale-redeem" min="0" max="0" value="0" oninput="updateRedeemVal()">
+          <label class="input-label">Название товара</label>
+          <input class="input" id="sale-product" type="text" placeholder="Необязательно">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Списать баллов</label>
+          <input class="input" id="sale-redeem" type="number" min="0" placeholder="0 (необязательно)" oninput="updateSaleCalc()">
         </div>
 
         <div class="points-calc" id="sale-calc">Введите сумму покупки</div>
@@ -1200,7 +1251,7 @@
       ? history.map(h => `
           <div class="history-item">
             <div>
-              <div>${Number(h.amount) > 0 ? `${fmt(h.amount)} ₽` : 'Реферальный бонус'}</div>
+              <div>${Number(h.amount) > 0 ? `${fmt(h.amount)} ₽` : 'Реферальный бонус'}${h.product_name ? ` · <span style="color:var(--muted);font-size:13px">${h.product_name}</span>` : ''}</div>
               <div class="history-date">${fmtDate(h.date)}</div>
             </div>
             <div style="text-align:right">
@@ -1285,8 +1336,24 @@
     }
   }
 
+  function staffInitials(name) {
+    return (name || '').trim().split(/\s+/).slice(0, 2).map(p => p[0] || '').join('').toUpperCase();
+  }
+
   function loadStaff(data) {
-    document.getElementById('staff-name-header').textContent = data.name || tgUser.first_name || 'Сотрудник';
+    const name = data.name || ((tgUser.first_name || '') + ' ' + (tgUser.last_name || '')).trim() || 'Сотрудник';
+    const city = data.city || '';
+    document.getElementById('staff-name-header').textContent = name;
+    document.getElementById('staff-role-city').textContent   = city ? `Сотрудник · ${city}` : 'Сотрудник';
+
+    const avatarEl = document.getElementById('staff-avatar');
+    const photoUrl = tgUser.photo_url;
+    if (photoUrl) {
+      avatarEl.innerHTML = `<img src="${photoUrl}" alt="">`;
+    } else {
+      document.getElementById('staff-avatar-initials').textContent = staffInitials(name);
+    }
+
     document.getElementById('staff-ref-link').textContent = `https://t.me/technobonusbot?start=staff_${TG_ID}`;
     showScreen('screen-staff');
     if (!API_URL && _debugActive) {
@@ -1302,10 +1369,48 @@
   }
 
   function staffTab(tab) {
-    ['search','scan','ref'].forEach(t => {
+    ['search','scan','ref','mysales'].forEach(t => {
       document.getElementById(`staff-tab-${t}`).classList.toggle('hidden', t !== tab);
       document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
     });
+    if (tab === 'mysales') loadStaffSales('', '');
+  }
+
+  function setStaffSalesPeriod(period, el) {
+    document.querySelectorAll('#staff-tab-mysales .filter-pill').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const today = new Date();
+    const toStr = today.toISOString().slice(0, 10);
+    let fromStr = '';
+    if (period === '7d')   { const d = new Date(today); d.setDate(d.getDate() - 6);       fromStr = d.toISOString().slice(0, 10); }
+    if (period === '30d')  { const d = new Date(today); d.setDate(d.getDate() - 29);      fromStr = d.toISOString().slice(0, 10); }
+    if (period === 'year') { const d = new Date(today); d.setFullYear(d.getFullYear()-1); fromStr = d.toISOString().slice(0, 10); }
+    document.getElementById('staff-sales-from').value = fromStr;
+    document.getElementById('staff-sales-to').value   = period === 'all' ? '' : toStr;
+    loadStaffSales(fromStr, period === 'all' ? '' : toStr);
+  }
+
+  function applyStaffSalesFilter() {
+    document.querySelectorAll('#staff-tab-mysales .filter-pill').forEach(b => b.classList.remove('active'));
+    loadStaffSales(
+      document.getElementById('staff-sales-from').value,
+      document.getElementById('staff-sales-to').value
+    );
+  }
+
+  async function loadStaffSales(dateFrom, dateTo) {
+    document.getElementById('staff-stat-count').textContent  = '…';
+    document.getElementById('staff-stat-amount').textContent = '…';
+    try {
+      const params = { action: 'getStaffSales', tg_id: String(TG_ID) };
+      if (dateFrom) params.date_from = dateFrom;
+      if (dateTo)   params.date_to   = dateTo;
+      const data = await api(params);
+      document.getElementById('staff-stat-count').textContent  = fmt(data.sales_count  || 0);
+      document.getElementById('staff-stat-amount').textContent = fmt(data.sales_amount || 0);
+    } catch {
+      showToast('Ошибка загрузки продаж', 'error');
+    }
   }
 
   async function doSearch() {
@@ -1357,7 +1462,6 @@
       });
       document.getElementById('sale-amount').value = 18500;
       document.getElementById('sale-redeem').value = 1500;
-      document.getElementById('redeem-val').textContent = '1500';
       updateSaleCalc();
       return;
     }
@@ -1376,11 +1480,10 @@
     document.getElementById('sale-client-meta').textContent    = `${client.phone || ''} · ${tierInfo(client.tier)[0]}`;
     document.getElementById('sale-client-balance').textContent = `${fmt(client.balance)} баллов`;
 
-    document.getElementById('sale-amount').value = '';
-    document.getElementById('sale-redeem').value = 0;
-    document.getElementById('sale-redeem').max   = 0;
-    document.getElementById('redeem-val').textContent = '0';
-    document.getElementById('sale-calc').textContent  = 'Введите сумму покупки';
+    document.getElementById('sale-amount').value  = '';
+    document.getElementById('sale-redeem').value  = '';
+    document.getElementById('sale-product').value = '';
+    document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
 
     document.getElementById('staff-tabs').classList.add('hidden');
     ['search','scan','ref'].forEach(t => document.getElementById(`staff-tab-${t}`).classList.add('hidden'));
@@ -1397,35 +1500,20 @@
     const amount = parseFloat(document.getElementById('sale-amount').value) || 0;
     if (!saleClientData || amount <= 0) {
       document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
-      document.getElementById('sale-redeem').max   = 0;
-      document.getElementById('sale-redeem').value = 0;
-      document.getElementById('redeem-val').textContent = '0';
       return;
     }
-
     const pct       = tierInfo(saleClientData.tier)[2];
     const earned    = Math.floor(amount * pct / 100);
     const maxRedeem = Math.min(Number(saleClientData.balance || 0), Math.floor(amount * 0.15));
-
-    const slider = document.getElementById('sale-redeem');
-    slider.max = maxRedeem;
-    if (parseInt(slider.value) > maxRedeem) {
-      slider.value = maxRedeem;
-      document.getElementById('redeem-val').textContent = maxRedeem;
-    }
-
     document.getElementById('sale-calc').innerHTML =
       `Кешбэк <strong>${pct}%</strong> → начислим <strong>${fmt(earned)} баллов</strong><br>` +
       `Максимально списать: <strong>${fmt(maxRedeem)} баллов</strong>`;
   }
 
-  function updateRedeemVal() {
-    document.getElementById('redeem-val').textContent = document.getElementById('sale-redeem').value;
-  }
-
   async function doAddSale() {
-    const amount = parseFloat(document.getElementById('sale-amount').value);
-    const redeem = parseInt(document.getElementById('sale-redeem').value) || 0;
+    const amount  = parseFloat(document.getElementById('sale-amount').value);
+    const redeem  = parseInt(document.getElementById('sale-redeem').value) || 0;
+    const product = document.getElementById('sale-product').value.trim();
 
     if (!amount || amount <= 0) { showToast('Введите сумму', 'error'); return; }
     if (!saleClientData) return;
@@ -1435,7 +1523,8 @@
         action: 'addSale',
         client_tg_id: saleClientData.tg_id,
         amount,
-        points_redeemed: redeem
+        points_redeemed: redeem,
+        product_name: product
       });
       if (data.success) {
         showToast(`Оформлено! +${fmt(data.sale?.points_earned || data.points_earned || 0)} баллов`, 'success');

@@ -46,6 +46,7 @@ function doPost(e) {
     else if (action === 'getStaffList')   result = getStaffList();
     else if (action === 'addStaff')       result = addStaff(body);
     else if (action === 'removeStaff')    result = removeStaff(String(body.staff_tg_id));
+    else if (action === 'getStaffSales')  result = getStaffSales(body);
     else result = { error: 'Неизвестное действие: ' + action };
     return jsonResponse(result);
   } catch (err) {
@@ -71,6 +72,7 @@ function doGet(e) {
       else if (action === 'getStaffList')   result = getStaffList();
       else if (action === 'addStaff')       result = addStaff(body);
       else if (action === 'removeStaff')    result = removeStaff(String(body.staff_tg_id));
+    else if (action === 'getStaffSales')  result = getStaffSales(body);
       else result = { error: 'Неизвестное действие: ' + action };
       return jsonResponse(result);
     }
@@ -83,7 +85,7 @@ function doGet(e) {
 function getRole(tgId) {
   const row = findStaffRow(tgId);
   if (!row) return { role: 'client' };
-  return { role: row[2] || 'staff' };
+  return { role: row[2] || 'staff', name: row[1] || '', city: row[4] || '' };
 }
 
 function getClient(tgId) {
@@ -210,7 +212,7 @@ function addSale(body, staffTgId) {
   clientSheet.getRange(clientRow, 6).setValue(newTotalYear);
   clientSheet.getRange(clientRow, 7).setValue(newTier);
   SHEETS.sales().appendRow([new Date().getTime().toString(), clientTgId, staffTgId,
-    amount, earned, actualRedeemed, formatDate(new Date())]);
+    amount, earned, actualRedeemed, formatDate(new Date()), body.product_name || '']);
 
   return { success: true, sale: { amount, points_earned: earned,
     points_redeemed: actualRedeemed, new_balance: newBalance,
@@ -224,7 +226,8 @@ function getSalesHistory(tgId) {
   for (let i = data.length - 1; i >= 1; i--) {
     if (String(data[i][1]) === tgId) {
       history.push({ sale_id: String(data[i][0]), amount: Number(data[i][3]),
-        points_earned: Number(data[i][4]), points_redeemed: Number(data[i][5]), date: data[i][6] || '' });
+        points_earned: Number(data[i][4]), points_redeemed: Number(data[i][5]),
+        date: data[i][6] || '', product_name: data[i][7] || '' });
       if (history.length >= 20) break;
     }
   }
@@ -305,6 +308,25 @@ function getStaffList() {
   }
   list.sort((a, b) => b.month_sales_amount - a.month_sales_amount);
   return { staff: list };
+}
+
+function getStaffSales(body) {
+  const tgId    = String(body.tg_id || '');
+  const dateFrom = body.date_from ? new Date(body.date_from + 'T00:00:00') : null;
+  const dateTo   = body.date_to   ? new Date(body.date_to   + 'T23:59:59') : null;
+  const sales = SHEETS.sales().getDataRange().getValues();
+  let count = 0, amount = 0;
+  for (let i = 1; i < sales.length; i++) {
+    if (String(sales[i][2]) !== tgId) continue;
+    if (dateFrom || dateTo) {
+      const d = parseRuDate(sales[i][6]);
+      if (dateFrom && d < dateFrom) continue;
+      if (dateTo   && d > dateTo)   continue;
+    }
+    count++;
+    amount += Number(sales[i][3]) || 0;
+  }
+  return { sales_count: count, sales_amount: Math.round(amount) };
 }
 
 function addStaff(body) {
