@@ -42,7 +42,7 @@ function doPost(e) {
     else if (action === 'searchClient')   result = searchClient(body.query);
     else if (action === 'getClientById')  result = getClientByTgId(String(body.client_tg_id));
     else if (action === 'addSale')        result = addSale(body, tgId);
-    else if (action === 'getAdminStats')  result = getAdminStats();
+    else if (action === 'getAdminStats')  result = getAdminStats(body);
     else if (action === 'getStaffList')   result = getStaffList();
     else if (action === 'addStaff')       result = addStaff(body);
     else if (action === 'removeStaff')    result = removeStaff(String(body.staff_tg_id));
@@ -67,7 +67,7 @@ function doGet(e) {
       else if (action === 'searchClient')   result = searchClient(body.query);
       else if (action === 'getClientById')  result = getClientByTgId(String(body.client_tg_id));
       else if (action === 'addSale')        result = addSale(body, tgId);
-      else if (action === 'getAdminStats')  result = getAdminStats();
+      else if (action === 'getAdminStats')  result = getAdminStats(body);
       else if (action === 'getStaffList')   result = getStaffList();
       else if (action === 'addStaff')       result = addStaff(body);
       else if (action === 'removeStaff')    result = removeStaff(String(body.staff_tg_id));
@@ -238,23 +238,44 @@ function parseRuDate(val) {
   return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
 }
 
-function getAdminStats() {
+function getAdminStats(body) {
   const clients = SHEETS.clients().getDataRange().getValues();
   const sales   = SHEETS.sales().getDataRange().getValues();
+  const dateFrom = body && body.date_from ? new Date(body.date_from + 'T00:00:00') : null;
+  const dateTo   = body && body.date_to   ? new Date(body.date_to   + 'T23:59:59') : null;
+
   let totalSales = 0, totalAmount = 0, totalPoints = 0;
   for (let i = 1; i < sales.length; i++) {
-    const earned = Number(sales[i][4]) || 0;
-    totalPoints += earned;
+    if (dateFrom || dateTo) {
+      const d = parseRuDate(sales[i][6]);
+      if (dateFrom && d < dateFrom) continue;
+      if (dateTo   && d > dateTo)   continue;
+    }
+    totalPoints += Number(sales[i][4]) || 0;
     totalSales++;
     totalAmount += Number(sales[i][3]) || 0;
   }
+
+  let clientCount = 0;
   const tierCount = { 'Новый': 0, 'Постоянный': 0, 'Свой': 0 };
   for (let i = 1; i < clients.length; i++) {
+    if (dateFrom || dateTo) {
+      const d = parseRuDate(clients[i][8]);
+      if (dateFrom && d < dateFrom) continue;
+      if (dateTo   && d > dateTo)   continue;
+    }
+    clientCount++;
     const t = clients[i][6] || 'Новый';
     if (tierCount[t] !== undefined) tierCount[t]++;
   }
-  return { total_clients: clients.length - 1, month_sales_count: totalSales,
-    month_sales_amount: Math.round(totalAmount), total_points_issued: totalPoints, tiers: tierCount };
+
+  return {
+    total_clients:       (dateFrom || dateTo) ? clientCount : clients.length - 1,
+    month_sales_count:   totalSales,
+    month_sales_amount:  Math.round(totalAmount),
+    total_points_issued: totalPoints,
+    tiers:               tierCount
+  };
 }
 
 function getStaffList() {

@@ -604,6 +604,13 @@
       }
       #debug-switcher a.active { background: rgba(255,255,255,0.25); color: #fff; }
       body.debug-mode { padding-top: 56px; }
+
+      .filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+      .filter-pill { padding:5px 14px; border-radius:20px; border:1px solid rgba(155,78,232,0.35); background:transparent; color:var(--muted); font-size:12px; cursor:pointer; transition:all .18s; }
+      .filter-pill.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+      .filter-dates { display:flex; gap:8px; }
+      .filter-dates .date-wrap { flex:1; display:flex; flex-direction:column; gap:4px; }
+      .filter-dates label { font-size:11px; color:var(--muted); }
     </style>
   </head>
   <body>
@@ -843,22 +850,40 @@
     </div>
 
     <div id="admin-tab-stats">
+      <div class="card" style="padding:14px 16px;margin-bottom:12px">
+        <div class="filter-row">
+          <button class="filter-pill active" onclick="setStatsPeriod('all',this)">Всё время</button>
+          <button class="filter-pill" onclick="setStatsPeriod('7d',this)">7 дней</button>
+          <button class="filter-pill" onclick="setStatsPeriod('30d',this)">30 дней</button>
+          <button class="filter-pill" onclick="setStatsPeriod('year',this)">Год</button>
+        </div>
+        <div class="filter-dates">
+          <div class="date-wrap">
+            <label>С</label>
+            <input type="date" id="stats-from" class="input" style="padding:8px 10px;font-size:13px" onchange="applyStatsFilter()">
+          </div>
+          <div class="date-wrap">
+            <label>По</label>
+            <input type="date" id="stats-to" class="input" style="padding:8px 10px;font-size:13px" onchange="applyStatsFilter()">
+          </div>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-value" id="stat-clients">—</div>
-          <div class="stat-label">Клиентов</div>
+          <div class="stat-label" id="stat-clients-lbl">Клиентов</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="stat-sales">—</div>
-          <div class="stat-label">Продаж всего</div>
+          <div class="stat-label" id="stat-sales-lbl">Продаж всего</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="stat-revenue">—</div>
-          <div class="stat-label">Оборот всего (₽)</div>
+          <div class="stat-label" id="stat-revenue-lbl">Оборот всего (₽)</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="stat-points">—</div>
-          <div class="stat-label">Баллов выдано</div>
+          <div class="stat-label" id="stat-points-lbl">Баллов выдано</div>
         </div>
       </div>
       <div class="card">
@@ -1449,18 +1474,62 @@
         api({ action: 'getAdminStats' }),
         api({ action: 'getStaffList' })
       ]);
-      renderAdminStats(statsData);
+      renderAdminStats(statsData, '', '');
       renderStaffList(staffListData.staff || []);
     } catch {
       showToast('Ошибка загрузки данных', 'error');
     }
   }
 
-  function renderAdminStats(data) {
+  async function loadAdminStats(dateFrom, dateTo) {
+    try {
+      const params = { action: 'getAdminStats' };
+      if (dateFrom) params.date_from = dateFrom;
+      if (dateTo)   params.date_to   = dateTo;
+      const data = await api(params);
+      renderAdminStats(data, dateFrom, dateTo);
+    } catch {
+      showToast('Ошибка загрузки статистики', 'error');
+    }
+  }
+
+  function setStatsPeriod(period, el) {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const today = new Date();
+    const toStr = today.toISOString().slice(0, 10);
+    let fromStr = '';
+    if (period === '7d') {
+      const d = new Date(today); d.setDate(d.getDate() - 6); fromStr = d.toISOString().slice(0, 10);
+    } else if (period === '30d') {
+      const d = new Date(today); d.setDate(d.getDate() - 29); fromStr = d.toISOString().slice(0, 10);
+    } else if (period === 'year') {
+      const d = new Date(today); d.setFullYear(d.getFullYear() - 1); fromStr = d.toISOString().slice(0, 10);
+    }
+    document.getElementById('stats-from').value = fromStr;
+    document.getElementById('stats-to').value   = period === 'all' ? '' : toStr;
+    loadAdminStats(fromStr, period === 'all' ? '' : toStr);
+  }
+
+  function applyStatsFilter() {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    loadAdminStats(
+      document.getElementById('stats-from').value,
+      document.getElementById('stats-to').value
+    );
+  }
+
+  function renderAdminStats(data, dateFrom, dateTo) {
     document.getElementById('stat-clients').textContent = fmt(data.total_clients);
     document.getElementById('stat-sales').textContent   = fmt(data.month_sales_count);
     document.getElementById('stat-revenue').textContent = fmt(data.month_sales_amount);
     document.getElementById('stat-points').textContent  = fmt(data.total_points_issued);
+
+    const filtered = !!(dateFrom || dateTo);
+    document.getElementById('stat-clients-lbl').textContent = filtered ? 'Новых клиентов' : 'Клиентов';
+    document.getElementById('stat-sales-lbl').textContent   = filtered ? 'Продаж за период' : 'Продаж всего';
+    document.getElementById('stat-revenue-lbl').textContent = filtered ? 'Оборот за период (₽)' : 'Оборот всего (₽)';
+    document.getElementById('stat-points-lbl').textContent  = filtered ? 'Баллов за период' : 'Баллов выдано';
 
     const t = data.tiers || {};
     document.getElementById('stats-tiers').innerHTML = `
