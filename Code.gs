@@ -241,28 +241,20 @@ function parseRuDate(val) {
 function getAdminStats() {
   const clients = SHEETS.clients().getDataRange().getValues();
   const sales   = SHEETS.sales().getDataRange().getValues();
-  const now = new Date();
-  Logger.log('NOW: month=%s year=%s', now.getMonth(), now.getFullYear());
-  Logger.log('Sales rows: %s', sales.length - 1);
-  let monthSales = 0, monthAmount = 0, totalPoints = 0;
+  let totalSales = 0, totalAmount = 0, totalPoints = 0;
   for (let i = 1; i < sales.length; i++) {
-    const raw = sales[i][6];
-    const d   = parseRuDate(raw);
-    Logger.log('Row %s: raw=%s type=%s parsed=%s month=%s year=%s', i, raw, typeof raw, d, d.getMonth(), d.getFullYear());
     const earned = Number(sales[i][4]) || 0;
     totalPoints += earned;
-    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      monthSales++;
-      monthAmount += Number(sales[i][3]) || 0;
-    }
+    totalSales++;
+    totalAmount += Number(sales[i][3]) || 0;
   }
   const tierCount = { 'Новый': 0, 'Постоянный': 0, 'Свой': 0 };
   for (let i = 1; i < clients.length; i++) {
     const t = clients[i][6] || 'Новый';
     if (tierCount[t] !== undefined) tierCount[t]++;
   }
-  return { total_clients: clients.length - 1, month_sales_count: monthSales,
-    month_sales_amount: Math.round(monthAmount), total_points_issued: totalPoints, tiers: tierCount };
+  return { total_clients: clients.length - 1, month_sales_count: totalSales,
+    month_sales_amount: Math.round(totalAmount), total_points_issued: totalPoints, tiers: tierCount };
 }
 
 function getStaffList() {
@@ -276,11 +268,8 @@ function getStaffList() {
     let salesCount = 0, salesAmount = 0, invitedCount = 0;
     for (let j = 1; j < salesData.length; j++) {
       if (String(salesData[j][2]) === tgId) {
-        const d = parseRuDate(salesData[j][6]);
-        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-          salesCount++;
-          salesAmount += Number(salesData[j][3]) || 0;
-        }
+        salesCount++;
+        salesAmount += Number(salesData[j][3]) || 0;
       }
     }
     for (let k = 1; k < clientData.length; k++) {
