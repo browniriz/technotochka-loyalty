@@ -623,6 +623,226 @@
       .staff-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
       .staff-header-name { font-size: 17px; font-weight: 800; line-height: 1.2; }
       .staff-header-meta { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+      /* Единый визуальный стиль с VK Mini App */
+      :root {
+        color-scheme: dark;
+        --bg: #0b0e16;
+        --bg2: #111622;
+        --surface: #171d2a;
+        --surface2: #20283a;
+        --accent: #6f62ff;
+        --accent2: #3f8cff;
+        --accent3: #31c48d;
+        --text: #f7f8fb;
+        --muted: #99a4b8;
+        --r: 18px;
+        --danger: #ff5b68;
+        --success: #31c48d;
+        --border: rgba(255, 255, 255, 0.09);
+        --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+        --glow: 0 0 28px rgba(79, 91, 255, 0.2);
+        --brand-gradient: linear-gradient(135deg, #6f62ff, #3f8cff);
+        --soft-gradient: linear-gradient(145deg, rgba(111, 98, 255, 0.18), rgba(63, 140, 255, 0.08));
+      }
+      body {
+        background:
+          radial-gradient(circle at 90% 4%, rgba(77, 91, 255, 0.18), transparent 28%),
+          radial-gradient(circle at 0 22%, rgba(46, 125, 255, 0.1), transparent 30%),
+          linear-gradient(180deg, #101523 0%, var(--bg) 48%, #090c13 100%);
+        padding: 18px 16px 42px;
+      }
+      body::before { display: none; }
+      #screen-client,
+      #screen-register,
+      #screen-staff,
+      #screen-admin { max-width: 680px; }
+      .header,
+      #screen-staff .header,
+      #screen-admin .header {
+        display: flex;
+        min-height: 54px;
+        margin: 0 0 18px;
+        padding: 0;
+        gap: 11px;
+        background: transparent;
+        border: 0;
+      }
+      #screen-client .header { display: flex; }
+      .header-logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: var(--brand-gradient);
+        font-size: 20px;
+        font-weight: 900;
+        box-shadow: 0 10px 24px rgba(63, 91, 255, 0.24);
+      }
+      .header-title { font-size: 18px; }
+      .header-sub { color: var(--muted); margin-top: 3px; }
+      .header-client-avatar,
+      .staff-avatar {
+        width: 44px;
+        height: 44px;
+        margin-left: auto;
+        border: 1px solid rgba(255,255,255,0.16);
+        background: #222b3d;
+        box-shadow: none;
+        font-size: 15px;
+      }
+      .staff-header-copy { min-width: 0; }
+      .card,
+      .stat-card {
+        background: linear-gradient(150deg, rgba(29, 37, 54, 0.98), rgba(20, 26, 39, 0.98));
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+      .card { padding: 17px; margin-bottom: 14px; }
+      .card-title {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 1.8px;
+      }
+      .balance-card {
+        position: relative;
+        overflow: hidden;
+        text-align: left;
+        padding: 22px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: linear-gradient(135deg, #6158ef 0%, #347fe9 100%);
+        box-shadow: 0 20px 48px rgba(46, 86, 212, 0.28);
+      }
+      .balance-card::after {
+        content: "";
+        position: absolute;
+        width: 190px;
+        height: 190px;
+        right: -75px;
+        top: -85px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        pointer-events: none;
+      }
+      .balance-card .card-title {
+        display: block;
+        color: rgba(255,255,255,0.74);
+        margin-bottom: 14px;
+      }
+      .balance-big {
+        color: #fff;
+        background: none;
+        text-align: left;
+        font-size: clamp(46px, 15vw, 64px);
+        line-height: 1;
+        text-shadow: none;
+      }
+      .balance-label {
+        color: rgba(255,255,255,0.74);
+        text-align: left;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 12px;
+      }
+      .level-badge {
+        margin: 20px 0 0;
+        color: #fff;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.22);
+      }
+      .progress-wrap { position: relative; z-index: 1; }
+      .progress-label { color: rgba(255,255,255,0.72); }
+      .progress-bar { background: rgba(255,255,255,0.18); }
+      .progress-fill { background: #fff; }
+      .mini-card,
+      button.mini-card {
+        background: linear-gradient(150deg, rgba(31,39,57,.98), rgba(22,28,42,.98));
+        border: 1px solid var(--border);
+        padding: 18px 10px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+      }
+      .mini-card-val,
+      .cashback-val,
+      .client-balance,
+      .sale-client-balance,
+      .staff-sales,
+      .stat-value { color: var(--text); }
+      .cashback-card { display: block; background: var(--surface); }
+      .input,
+      .select {
+        width: 100%;
+        min-height: 52px;
+        padding: 13px 44px 13px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.1);
+        background-color: #20283a;
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .input { padding-right: 14px; }
+      .input:focus,
+      .select:focus {
+        border-color: rgba(91, 111, 255, .9);
+        box-shadow: 0 0 0 3px rgba(91, 111, 255, .14);
+      }
+      .input::placeholder { color: #707b90; }
+      .select {
+        appearance: none;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #cbd3df 50%),
+          linear-gradient(135deg, #cbd3df 50%, transparent 50%);
+        background-position:
+          calc(100% - 22px) 23px,
+          calc(100% - 16px) 23px;
+        background-size: 6px 6px, 6px 6px;
+        background-repeat: no-repeat;
+      }
+      .select option { background: #20283a; color: var(--text); }
+      .input-label { color: #aab3c3; font-weight: 600; }
+      .tabs {
+        background: rgba(24,30,44,.94);
+        border-color: var(--border);
+        border-radius: 15px;
+        overflow-x: auto;
+      }
+      .tab { min-width: max-content; padding: 10px 12px; }
+      .tab.active { background: var(--brand-gradient); box-shadow: none; }
+      .btn { min-height: 50px; border-radius: 14px; font-weight: 800; }
+      .btn-primary { background: var(--brand-gradient); }
+      .btn-secondary { background: var(--surface2); }
+      .btn-success {
+        background: linear-gradient(135deg, #24ad7d, #36ce9a);
+        box-shadow: 0 12px 28px rgba(49,196,141,.2);
+      }
+      .btn-sm { min-height: 46px; }
+      .client-result,
+      .sale-client-card,
+      .ref-box,
+      .ref-link-box {
+        background: linear-gradient(150deg, #1d2536, #171d2a);
+        border: 1px solid var(--border);
+      }
+      .client-result:active { background: #252f44; }
+      .back-btn { color: #9db7ff; }
+      .sale-client-card { border-left: 3px solid var(--accent2); }
+      .operation-card .btn-success { margin-top: 8px; }
+      .points-calc {
+        background: rgba(36, 173, 125, .09);
+        border-color: rgba(49, 196, 141, .22);
+      }
+      .filter-pill { background: var(--surface2); border-color: var(--border); }
+      .filter-pill.active { background: var(--brand-gradient); border-color: transparent; }
+      .staff-item { background: transparent; }
+      .overlay-panel,
+      .modal { background: linear-gradient(155deg, #20283a, #121722); border-color: var(--border); }
+      .app-overlay,
+      .modal-overlay { background: rgba(6,9,15,.84); }
+      #toast { background: #20283a; border: 1px solid var(--border); }
+      #debug-bar { background: linear-gradient(135deg, #4f55d8, #317edc); }
+      body.debug-mode { padding-top: 68px; }
     </style>
   </head>
   <body>
@@ -646,25 +866,23 @@
   <!-- ── CLIENT ─────────────────────────────────────── -->
   <div id="screen-client" class="hidden">
     <div class="header">
-      <div class="header-logo">💎</div>
+      <div class="header-logo">Т</div>
       <div>
-        <div class="header-title">Техноточка Бонусы</div>
+        <div class="header-title">Бонусная карта</div>
         <div class="header-sub" id="client-name-header">Привет!</div>
+      </div>
+      <div class="client-avatar header-client-avatar" id="client-avatar">
+        <span id="client-avatar-initials">--</span>
+        <img id="client-avatar-img" class="hidden" alt="">
       </div>
     </div>
 
     <div class="card balance-card">
       <div class="card-title">Бонусный баланс</div>
-      <div class="client-profile">
-        <div class="client-avatar" id="client-avatar">
-          <span id="client-avatar-initials">--</span>
-          <img id="client-avatar-img" class="hidden" alt="">
-        </div>
-        <div class="client-name-main" id="client-name-main">Привет!</div>
-        <div id="client-level-badge" class="level-badge level-new">⭐ Новый · 3% кешбэк</div>
-      </div>
+      <div class="client-name-main hidden" id="client-name-main">Привет!</div>
       <div class="balance-big" id="client-balance">0</div>
-      <div class="balance-label">баллов на счету</div>
+      <div class="balance-label">баллов · 1 балл = 1 ₽</div>
+      <div id="client-level-badge" class="level-badge level-new">⭐ Новый · 3% кешбэк</div>
 
       <div class="progress-wrap">
         <div class="progress-label" id="client-progress-label"></div>
@@ -742,7 +960,7 @@
   <!-- ── REGISTER ────────────────────────────────────── -->
   <div id="screen-register" class="hidden">
     <div class="header">
-      <div class="header-logo">💎</div>
+      <div class="header-logo">Т</div>
       <div>
         <div class="header-title">Техноточка Бонусы</div>
         <div class="header-sub">Добро пожаловать!</div>
@@ -769,12 +987,13 @@
   <!-- ── STAFF ───────────────────────────────────────── -->
   <div id="screen-staff" class="hidden">
     <div class="header">
-      <div class="staff-avatar" id="staff-avatar">
-        <span id="staff-avatar-initials"></span>
-      </div>
-      <div>
+      <div class="header-logo">Т</div>
+      <div class="staff-header-copy">
         <div class="staff-header-name" id="staff-name-header">—</div>
         <div class="staff-header-meta" id="staff-role-city">Сотрудник</div>
+      </div>
+      <div class="staff-avatar" id="staff-avatar">
+        <span id="staff-avatar-initials"></span>
       </div>
     </div>
 
@@ -858,29 +1077,39 @@
         <div class="sale-client-balance" id="sale-client-balance">0 баллов</div>
       </div>
 
-      <div class="card">
-        <div class="section-title">Оформить продажу</div>
-
+      <div class="card operation-card">
         <div class="input-group">
-          <label class="input-label">Сумма покупки (₽) *</label>
-          <input class="input" id="sale-amount" type="number" min="1" placeholder="0" oninput="updateSaleCalc()">
+          <label class="input-label" for="operation-type">Тип операции</label>
+          <select class="select operation-select" id="operation-type" onchange="updateOperationFields()" required>
+            <option value="" selected disabled>Выберите тип операции</option>
+            <option value="pledge">Залог</option>
+            <option value="extension">Продление</option>
+            <option value="purchase">Покупка</option>
+          </select>
         </div>
 
-        <div class="input-group">
-          <label class="input-label">Название товара</label>
-          <input class="input" id="sale-product" type="text" placeholder="Необязательно">
+        <div id="operation-fields" class="hidden">
+          <div class="input-group">
+            <label class="input-label" id="sale-amount-label" for="sale-amount">Сумма, ₽</label>
+            <input class="input" id="sale-amount" type="number" inputmode="decimal" min="1" placeholder="0" oninput="updateSaleCalc()">
+          </div>
+
+          <div id="purchase-fields" class="hidden">
+            <div class="input-group">
+              <label class="input-label" for="sale-product">Товар</label>
+              <input class="input" id="sale-product" type="text" maxlength="120" placeholder="Например, смартфон">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="sale-redeem">Списать баллов</label>
+              <input class="input" id="sale-redeem" type="number" inputmode="numeric" min="0" value="0" oninput="updateSaleCalc()">
+            </div>
+
+            <div class="points-calc" id="sale-calc">Введите сумму покупки</div>
+          </div>
         </div>
 
-        <div class="input-group">
-          <label class="input-label">Списать баллов</label>
-          <input class="input" id="sale-redeem" type="number" min="0" placeholder="0 (необязательно)" oninput="updateSaleCalc()">
-        </div>
-
-        <div class="points-calc" id="sale-calc">Введите сумму покупки</div>
-
-        <button class="btn btn-success" onclick="doAddSale()" style="margin-top:8px">
-          ✅ Оформить продажу
-        </button>
+        <button class="btn btn-success" onclick="doAddSale()">Подтвердить</button>
       </div>
     </div>
   </div>
@@ -888,7 +1117,7 @@
   <!-- ── ADMIN ───────────────────────────────────────── -->
   <div id="screen-admin" class="hidden">
     <div class="header">
-      <div class="header-logo">⚙️</div>
+      <div class="header-logo">Т</div>
       <div>
         <div class="header-title">Техноточка</div>
         <div class="header-sub">Администратор</div>
@@ -1003,6 +1232,7 @@
     showConfirm: (msg, cb) => cb(window.confirm(msg)),
     showScanQrPopup: () => alert('QR-сканер доступен только в Telegram'),
     closeScanQrPopup: () => {},
+    HapticFeedback: { selectionChanged: () => {}, notificationOccurred: () => {} },
     MainButton: { show: () => {}, hide: () => {}, setText: () => {}, onClick: () => {} },
   };
   tg.ready();
@@ -1022,6 +1252,12 @@
       if (a.href.includes('debug=' + _debugParam)) a.classList.add('active');
     });
   }
+
+  const OPERATION_TYPES = {
+    pledge: 'Залог',
+    extension: 'Продление',
+    purchase: 'Покупка',
+  };
 
   let saleClientData = null;
   let currentClientId = '';
@@ -1356,7 +1592,7 @@
 
     document.getElementById('staff-ref-link').textContent = `https://t.me/technobonusbot?start=staff_${TG_ID}`;
     showScreen('screen-staff');
-    if (!API_URL && _debugActive) {
+    if (_debugActive) {
       document.getElementById('search-results').innerHTML = `
         <div class="client-result" onclick="selectClient('222222222')">
           <div>
@@ -1401,6 +1637,11 @@
   async function loadStaffSales(dateFrom, dateTo) {
     document.getElementById('staff-stat-count').textContent  = '…';
     document.getElementById('staff-stat-amount').textContent = '…';
+    if (_debugActive) {
+      document.getElementById('staff-stat-count').textContent = '47';
+      document.getElementById('staff-stat-amount').textContent = '683 000';
+      return;
+    }
     try {
       const params = { action: 'getStaffSales', tg_id: String(TG_ID) };
       if (dateFrom) params.date_from = dateFrom;
@@ -1420,7 +1661,7 @@
     const resultsEl = document.getElementById('search-results');
     resultsEl.innerHTML = '<div class="empty">Поиск...</div>';
 
-    if (!API_URL && _debugActive) {
+    if (_debugActive) {
       resultsEl.innerHTML = `
         <div class="client-result" onclick="selectClient('222222222')">
           <div>
@@ -1452,7 +1693,7 @@
   }
 
   async function selectClient(clientTgId) {
-    if (!API_URL && _debugActive) {
+    if (_debugActive) {
       openSalePanel({
         tg_id: clientTgId,
         fio: 'Алексей Коваленко',
@@ -1460,9 +1701,6 @@
         tier: 'Постоянный',
         balance: 2840
       });
-      document.getElementById('sale-amount').value = 18500;
-      document.getElementById('sale-redeem').value = 1500;
-      updateSaleCalc();
       return;
     }
     try {
@@ -1480,13 +1718,18 @@
     document.getElementById('sale-client-meta').textContent    = `${client.phone || ''} · ${tierInfo(client.tier)[0]}`;
     document.getElementById('sale-client-balance').textContent = `${fmt(client.balance)} баллов`;
 
+    document.getElementById('operation-type').value = '';
+    document.getElementById('operation-fields').classList.add('hidden');
+    document.getElementById('purchase-fields').classList.add('hidden');
+    document.getElementById('sale-amount-label').textContent = 'Сумма, ₽';
     document.getElementById('sale-amount').value  = '';
-    document.getElementById('sale-redeem').value  = '';
+    document.getElementById('sale-redeem').value  = '0';
+    document.getElementById('sale-redeem').max = '0';
     document.getElementById('sale-product').value = '';
     document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
 
     document.getElementById('staff-tabs').classList.add('hidden');
-    ['search','scan','ref'].forEach(t => document.getElementById(`staff-tab-${t}`).classList.add('hidden'));
+    ['search','scan','ref','mysales'].forEach(t => document.getElementById(`staff-tab-${t}`).classList.add('hidden'));
     document.getElementById('staff-sale-panel').classList.remove('hidden');
   }
 
@@ -1496,24 +1739,61 @@
     staffTab('search');
   }
 
+  function updateOperationFields() {
+    const operationType = document.getElementById('operation-type').value;
+    const hasOperation = Boolean(OPERATION_TYPES[operationType]);
+    const isPurchase = operationType === 'purchase';
+
+    document.getElementById('operation-fields').classList.toggle('hidden', !hasOperation);
+    document.getElementById('purchase-fields').classList.toggle('hidden', !isPurchase);
+    document.getElementById('sale-amount-label').textContent = isPurchase ? 'Сумма покупки, ₽' : 'Сумма, ₽';
+
+    if (!isPurchase) {
+      document.getElementById('sale-product').value = '';
+      document.getElementById('sale-redeem').value = '0';
+      document.getElementById('sale-redeem').max = '0';
+      document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
+    } else {
+      updateSaleCalc();
+    }
+
+    tg.HapticFeedback?.selectionChanged?.();
+  }
+
   function updateSaleCalc() {
+    if (document.getElementById('operation-type').value !== 'purchase') return;
+
     const amount = parseFloat(document.getElementById('sale-amount').value) || 0;
     if (!saleClientData || amount <= 0) {
       document.getElementById('sale-calc').textContent = 'Введите сумму покупки';
+      document.getElementById('sale-redeem').max = '0';
       return;
     }
     const pct       = tierInfo(saleClientData.tier)[2];
     const earned    = Math.floor(amount * pct / 100);
     const maxRedeem = Math.min(Number(saleClientData.balance || 0), Math.floor(amount * 0.15));
+    const redeemInput = document.getElementById('sale-redeem');
+    redeemInput.max = String(maxRedeem);
+    if ((parseInt(redeemInput.value) || 0) > maxRedeem) redeemInput.value = String(maxRedeem);
     document.getElementById('sale-calc').innerHTML =
       `Кешбэк <strong>${pct}%</strong> → начислим <strong>${fmt(earned)} баллов</strong><br>` +
       `Максимально списать: <strong>${fmt(maxRedeem)} баллов</strong>`;
   }
 
   async function doAddSale() {
-    const amount  = parseFloat(document.getElementById('sale-amount').value);
-    const redeem  = parseInt(document.getElementById('sale-redeem').value) || 0;
-    const product = document.getElementById('sale-product').value.trim();
+    const operationType = document.getElementById('operation-type').value;
+    if (!OPERATION_TYPES[operationType]) {
+      showToast('Выберите тип операции', 'error');
+      tg.HapticFeedback?.notificationOccurred?.('error');
+      return;
+    }
+
+    const isPurchase = operationType === 'purchase';
+    const amount = parseFloat(document.getElementById('sale-amount').value);
+    const redeem = isPurchase ? (parseInt(document.getElementById('sale-redeem').value) || 0) : 0;
+    const product = isPurchase
+      ? document.getElementById('sale-product').value.trim()
+      : OPERATION_TYPES[operationType];
 
     if (!amount || amount <= 0) { showToast('Введите сумму', 'error'); return; }
     if (!saleClientData) return;
@@ -1524,18 +1804,22 @@
         client_tg_id: saleClientData.tg_id,
         amount,
         points_redeemed: redeem,
-        product_name: product
+        product_name: product,
+        operation_type: operationType
       });
       if (data.success) {
-        showToast(`Оформлено! +${fmt(data.sale?.points_earned || data.points_earned || 0)} баллов`, 'success');
+        showToast(`${OPERATION_TYPES[operationType]}: операция подтверждена`, 'success');
+        tg.HapticFeedback?.notificationOccurred?.('success');
         hideSalePanel();
         document.getElementById('search-query').value = '';
         document.getElementById('search-results').innerHTML = '';
       } else {
         showToast(data.error || 'Ошибка оформления', 'error');
+        tg.HapticFeedback?.notificationOccurred?.('error');
       }
     } catch {
       showToast('Ошибка сети', 'error');
+      tg.HapticFeedback?.notificationOccurred?.('error');
     }
   }
 
