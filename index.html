@@ -1438,6 +1438,7 @@
 
   let saleClientData = null;
   let currentClientId = '';
+  let currentVkLinkUrl = VK_APP_URL;
   let wakeLock = null;
 
   function showScreen(id) {
@@ -1806,6 +1807,7 @@
         return;
       }
       if (!data.code) throw new Error('Не удалось создать код');
+      currentVkLinkUrl = data.vk_url || `${VK_APP_URL}#link_${encodeURIComponent(data.code)}`;
       document.getElementById('vk-link-code').textContent = data.code;
       document.getElementById('vk-link-modal').classList.remove('hidden');
       tg.HapticFeedback?.notificationOccurred?.('success');
@@ -1820,8 +1822,8 @@
   }
 
   function openVkApp() {
-    if (tg.openLink) tg.openLink(VK_APP_URL);
-    else window.open(VK_APP_URL, '_blank', 'noopener,noreferrer');
+    if (tg.openLink) tg.openLink(currentVkLinkUrl);
+    else window.open(currentVkLinkUrl, '_blank', 'noopener,noreferrer');
   }
 
   function copyVkLinkCode() {
