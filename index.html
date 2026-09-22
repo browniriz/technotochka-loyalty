@@ -680,6 +680,13 @@
       }
       .header-title { font-size: 18px; }
       .header-sub { color: var(--muted); margin-top: 3px; }
+      .client-city {
+        margin: 0 0 3px;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
       .header-client-avatar,
       .staff-avatar {
         width: 44px;
@@ -698,7 +705,7 @@
         box-shadow: var(--shadow);
         backdrop-filter: blur(16px);
       }
-      .card { padding: 17px; margin-bottom: 14px; }
+      .card { padding: 17px; margin-bottom: 12px; }
       .card-title {
         color: var(--muted);
         font-size: 11px;
@@ -708,66 +715,155 @@
         position: relative;
         overflow: hidden;
         text-align: left;
-        padding: 22px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: linear-gradient(135deg, #6158ef 0%, #347fe9 100%);
-        box-shadow: 0 20px 48px rgba(46, 86, 212, 0.28);
+        padding: 21px;
+        border: 1px solid rgba(128,119,255,.28);
+        background: linear-gradient(145deg, rgba(93,79,231,.94), rgba(45,98,206,.92));
+        box-shadow: var(--shadow);
       }
       .balance-card::after {
         content: "";
         position: absolute;
-        width: 190px;
-        height: 190px;
-        right: -75px;
-        top: -85px;
+        width: 170px;
+        height: 170px;
+        right: -52px;
+        top: -65px;
+        border: 28px solid rgba(255,255,255,.06);
         border-radius: 50%;
-        background: rgba(255,255,255,0.08);
+        background: transparent;
         pointer-events: none;
       }
       .balance-card .card-title {
+        position: relative;
+        z-index: 1;
         display: block;
         color: rgba(255,255,255,0.74);
-        margin-bottom: 14px;
+        margin: 0;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: .06em;
       }
       .balance-big {
+        position: relative;
+        z-index: 1;
         color: #fff;
         background: none;
         text-align: left;
-        font-size: clamp(46px, 15vw, 64px);
-        line-height: 1;
+        margin: 8px 0 3px;
+        font-size: clamp(44px, 13vw, 62px);
+        line-height: .98;
+        letter-spacing: -.055em;
         text-shadow: none;
       }
       .balance-label {
-        color: rgba(255,255,255,0.74);
+        position: relative;
+        z-index: 1;
+        color: rgba(255,255,255,0.78);
         text-align: left;
         text-transform: none;
         letter-spacing: 0;
-        font-size: 12px;
+        font-size: 14px;
+      }
+      .tier-row {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 22px;
       }
       .level-badge {
-        margin: 20px 0 0;
+        margin: 0;
+        padding: 7px 11px;
         color: #fff;
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(5,9,25,.18);
+        border: 1px solid rgba(255,255,255,.16);
+        font-size: 12px;
+        font-weight: 800;
       }
-      .progress-wrap { position: relative; z-index: 1; }
-      .progress-label { color: rgba(255,255,255,0.72); }
-      .progress-bar { background: rgba(255,255,255,0.18); }
-      .progress-fill { background: #fff; }
-      .mini-card,
-      button.mini-card {
-        background: linear-gradient(150deg, rgba(31,39,57,.98), rgba(22,28,42,.98));
+      .cashback-value {
+        color: rgba(255,255,255,.84);
+        font-size: 13px;
+        font-weight: 720;
+      }
+      .progress-wrap { position: relative; z-index: 1; margin-top: 16px; }
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: rgba(255,255,255,.74);
+      }
+      .progress-bar { background: rgba(0,0,0,.22); }
+      .progress-fill { background: linear-gradient(90deg,#fff,#d7e6ff); }
+      .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 9px;
+        margin: 12px 0;
+      }
+      .quick-action {
+        min-height: 92px;
+        padding: 13px 8px;
         border: 1px solid var(--border);
-        padding: 18px 10px;
-        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+        border-radius: 17px;
+        background: rgba(23,29,42,.92);
+        color: var(--text);
+        cursor: pointer;
+        font-family: inherit;
       }
-      .mini-card-val,
-      .cashback-val,
+      .quick-action:active { transform: translateY(1px); opacity: .84; }
+      .quick-icon {
+        display: block;
+        width: auto;
+        height: auto;
+        margin: 0 0 9px;
+        font-size: 24px;
+      }
+      .quick-label {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 740;
+        line-height: 1.25;
+      }
       .client-balance,
       .sale-client-balance,
       .staff-sales,
       .stat-value { color: var(--text); }
-      .cashback-card { display: block; background: var(--surface); }
+      .client-notice {
+        margin-bottom: 12px;
+        padding: 12px 13px;
+        border: 1px solid rgba(244,183,64,.26);
+        border-radius: 14px;
+        background: rgba(244,183,64,.08);
+        color: #f7d58f;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .history-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 22px 2px 10px;
+      }
+      .history-heading h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+      .history-heading span { color: var(--muted); font-size: 11px; }
+      .history-card {
+        min-height: 116px;
+        padding: 17px;
+        background: linear-gradient(150deg, rgba(29,37,54,.98), rgba(20,26,39,.98));
+        border: 1px solid var(--border);
+        box-shadow: none;
+      }
+      .history-title { color: var(--text); font-weight: 700; }
+      .history-points { flex: 0 0 auto; text-align: right; font-weight: 800; }
+      .history-empty {
+        padding: 34px 18px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .history-empty strong { display: block; margin-bottom: 6px; color: var(--text); }
       .input,
       .select {
         width: 100%;
@@ -868,8 +964,8 @@
     <div class="header">
       <div class="header-logo">Т</div>
       <div>
+        <div class="header-sub client-city">МАГНИТОГОРСК</div>
         <div class="header-title">Бонусная карта</div>
-        <div class="header-sub" id="client-name-header">Привет!</div>
       </div>
       <div class="client-avatar header-client-avatar" id="client-avatar">
         <span id="client-avatar-initials">--</span>
@@ -878,62 +974,51 @@
     </div>
 
     <div class="card balance-card">
-      <div class="card-title">Бонусный баланс</div>
+      <div class="card-title">Общий баланс сети</div>
       <div class="client-name-main hidden" id="client-name-main">Привет!</div>
       <div class="balance-big" id="client-balance">0</div>
       <div class="balance-label">баллов · 1 балл = 1 ₽</div>
-      <div id="client-level-badge" class="level-badge level-new">⭐ Новый · 3% кешбэк</div>
+
+      <div class="tier-row">
+        <div id="client-level-badge" class="level-badge level-new">Новый</div>
+        <div id="client-cashback" class="cashback-value">3% кешбэк</div>
+      </div>
 
       <div class="progress-wrap">
-        <div class="progress-label" id="client-progress-label"></div>
+        <div class="progress-label">
+          <span id="client-progress-label"></span>
+          <span id="client-progress-percent">0%</span>
+        </div>
         <div class="progress-bar"><div class="progress-fill" id="client-progress-fill" style="width:0%"></div></div>
       </div>
     </div>
 
-    <div class="mini-cards">
-      <button class="mini-card btn-secondary" type="button" onclick="toggleQrModal()">
-        <div class="mini-card-val">
-          <svg class="mini-icon" viewBox="0 0 32 32" aria-hidden="true">
-            <rect x="7" y="8" width="14" height="16" rx="2" fill="#f59e0b"/>
-            <rect x="10" y="11" width="8" height="4" rx="1" fill="#38bdf8"/>
-            <rect x="9" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
-            <rect x="14" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
-            <rect x="19" y="18" width="3" height="3" rx="0.5" fill="#ffffff"/>
-            <path d="M5 24h19" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-            <path d="M21 11h4a2 2 0 0 1 2 2v11" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-            <path d="M4 15h3" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="mini-card-lbl">Мой QR-код</div>
+    <div class="quick-grid" aria-label="Быстрые действия">
+      <button class="quick-action" type="button" onclick="toggleQrModal()">
+        <span class="quick-icon">▦</span>
+        <span class="quick-label">Показать QR</span>
       </button>
-      <button class="mini-card btn-secondary" type="button" onclick="openReferralModal()">
-        <div class="mini-card-val">🎁</div>
-        <div class="mini-card-lbl">Реферал</div>
+      <button class="quick-action" type="button" onclick="openReferralModal()">
+        <span class="quick-icon">🎁</span>
+        <span class="quick-label">Пригласить друга</span>
+      </button>
+      <button class="quick-action" type="button" onclick="enableTelegramNotifications()">
+        <span class="quick-icon" id="notification-icon">🔔</span>
+        <span class="quick-label" id="notification-label">Включить уведомления</span>
       </button>
     </div>
 
-    <div class="card cashback-card">
-      <div class="card-title">Условия кешбэка</div>
-      <div class="cashback-row">
-        <span>Новый (до 10 000 ₽/год)</span>
-        <span class="cashback-val">3%</span>
-      </div>
-      <div class="cashback-row">
-        <span>Постоянный (до 40 000 ₽/год)</span>
-        <span class="cashback-val">5%</span>
-      </div>
-      <div class="cashback-row">
-        <span>Свой (от 40 000 ₽/год)</span>
-        <span class="cashback-val">7%</span>
-      </div>
-      <div class="divider"></div>
-      <div style="font-size:12px;color:var(--muted)">Списание баллов — до 15% от суммы покупки</div>
+    <div class="client-notice">
+      Баллы действуют во всех городах сети «Техноточка». Списать можно до 15% стоимости покупки.
     </div>
 
-    <div class="card history-card">
-      <div class="card-title">История покупок</div>
+    <div class="history-heading">
+      <h2>История</h2>
+      <span id="client-history-count">0 операций</span>
+    </div>
+    <div class="card history-card card-flat">
       <div id="client-history-list">
-        <div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>
+        <div class="history-empty"><strong>Операций пока нет</strong>Первая покупка появится здесь.</div>
       </div>
     </div>
   </div>
@@ -1295,6 +1380,16 @@
     return Number(n || 0).toLocaleString('ru-RU');
   }
 
+  function operationCountLabel(count) {
+    const n = Math.abs(Number(count) || 0);
+    const mod100 = n % 100;
+    const mod10 = n % 10;
+    if (mod100 >= 11 && mod100 <= 14) return `${n} операций`;
+    if (mod10 === 1) return `${n} операция`;
+    if (mod10 >= 2 && mod10 <= 4) return `${n} операции`;
+    return `${n} операций`;
+  }
+
   function tierInfo(tier) {
     const map = {
       'Новый':      ['⭐ Новый',      'level-new',     3],
@@ -1427,14 +1522,14 @@
     currentClientId = String(tg_id || TG_ID);
     const displayName = clientDisplayName(fio);
 
-    document.getElementById('client-name-header').textContent = displayName;
     document.getElementById('client-name-main').textContent = displayName;
     document.getElementById('client-balance').textContent = fmt(balance);
 
     const [label, cls, pct] = tierInfo(tier);
     const badge = document.getElementById('client-level-badge');
-    badge.textContent = `${label} · ${pct}% кешбэк`;
+    badge.textContent = tier || label.replace(/^[^А-ЯЁ]+/u, '');
     badge.className = `level-badge ${cls}`;
+    document.getElementById('client-cashback').textContent = `${pct}% кешбэк`;
 
     const avatarImg = document.getElementById('client-avatar-img');
     const avatarInitials = document.getElementById('client-avatar-initials');
@@ -1474,6 +1569,7 @@
       nextTierLabel = '👑 Максимум';
     }
     document.getElementById('client-progress-label').textContent     = progressLabel;
+    document.getElementById('client-progress-percent').textContent   = progressPct + '%';
     document.getElementById('client-progress-fill').style.width      = progressPct + '%';
 
     QRCode.toCanvas(document.getElementById('qr-canvas'), String(tg_id || TG_ID), {
@@ -1481,21 +1577,23 @@
       color: { dark: '#000000', light: '#ffffff' }
     }, () => {});
     document.getElementById('client-ref-link').textContent = clientRefLink();
+    renderNotificationPreference();
 
     const listEl = document.getElementById('client-history-list');
+    document.getElementById('client-history-count').textContent = operationCountLabel(history.length);
     listEl.innerHTML = history.length
       ? history.map(h => `
           <div class="history-item">
             <div>
-              <div>${Number(h.amount) > 0 ? `${fmt(h.amount)} ₽` : 'Реферальный бонус'}${h.product_name ? ` · <span style="color:var(--muted);font-size:13px">${h.product_name}</span>` : ''}</div>
-              <div class="history-date">${fmtDate(h.date)}</div>
+              <div class="history-title">${h.product_name || (Number(h.amount) > 0 ? 'Покупка' : 'Бонус')}</div>
+              <div class="history-date">${Number(h.amount) > 0 ? `${fmt(h.amount)} ₽ · ` : ''}Техноточка<br>${fmtDate(h.date)}</div>
             </div>
-            <div style="text-align:right">
-              ${h.points_earned   ? `<div class="points-plus">+${fmt(h.points_earned)} баллов</div>`   : ''}
-              ${h.points_redeemed ? `<div class="points-minus">−${fmt(h.points_redeemed)} списано</div>` : ''}
+            <div class="history-points">
+              ${h.points_earned   ? `<div class="points-plus">+${fmt(h.points_earned)}</div>`   : ''}
+              ${h.points_redeemed ? `<div class="points-minus">−${fmt(h.points_redeemed)}</div>` : ''}
             </div>
           </div>`).join('')
-      : '<div class="empty"><div class="empty-icon">🛍️</div>Пока нет покупок</div>';
+      : '<div class="history-empty"><strong>Операций пока нет</strong>Первая покупка появится здесь.</div>';
 
     showScreen('screen-client');
   }
@@ -1535,6 +1633,22 @@
   function openReferralModal() {
     document.getElementById('client-ref-link').textContent = clientRefLink();
     document.getElementById('referral-modal').classList.remove('hidden');
+  }
+
+  function renderNotificationPreference() {
+    let enabled = false;
+    try { enabled = localStorage.getItem('technobonus_notifications_enabled') === '1'; } catch {}
+    document.getElementById('notification-icon').textContent = enabled ? '✓' : '🔔';
+    document.getElementById('notification-label').textContent = enabled
+      ? 'Уведомления включены'
+      : 'Включить уведомления';
+  }
+
+  function enableTelegramNotifications() {
+    try { localStorage.setItem('technobonus_notifications_enabled', '1'); } catch {}
+    renderNotificationPreference();
+    tg.HapticFeedback?.notificationOccurred?.('success');
+    showToast('Уведомления включены', 'success');
   }
 
   function closeReferralModal(e) {
