@@ -826,6 +826,49 @@
         font-weight: 740;
         line-height: 1.25;
       }
+      .platform-link-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 12px 0;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 17px;
+        background: rgba(23,29,42,.92);
+      }
+      .platform-link-copy { min-width: 0; }
+      .platform-link-copy strong,
+      .platform-link-copy span { display: block; }
+      .platform-link-copy strong { margin-bottom: 4px; }
+      .platform-link-copy span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .platform-link-card .btn {
+        flex: 0 0 auto;
+        width: auto;
+        min-height: 44px;
+      }
+      .link-code-box {
+        margin: 18px 0;
+        padding: 17px;
+        border: 1px solid rgba(91,111,255,.48);
+        border-radius: 15px;
+        background: rgba(91,111,255,.1);
+        color: #fff;
+        text-align: center;
+        font-size: 30px;
+        font-weight: 900;
+        letter-spacing: .2em;
+      }
+      .link-code-input {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: .2em;
+      }
       .client-balance,
       .sale-client-balance,
       .staff-sales,
@@ -939,6 +982,13 @@
       #toast { background: #20283a; border: 1px solid var(--border); }
       #debug-bar { background: linear-gradient(135deg, #4f55d8, #317edc); }
       body.debug-mode { padding-top: 68px; }
+      @media (max-width: 520px) {
+        .platform-link-card {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .platform-link-card .btn { width: 100%; }
+      }
     </style>
   </head>
   <body>
@@ -1008,6 +1058,14 @@
       </button>
     </div>
 
+    <div class="platform-link-card">
+      <div class="platform-link-copy">
+        <strong>Подключить VK</strong>
+        <span>Один баланс и одна история в обоих приложениях.</span>
+      </div>
+      <button class="btn btn-primary" type="button" onclick="openVkLinkModal()">Подключить</button>
+    </div>
+
     <div class="client-notice">
       Баллы действуют во всех городах сети «Техноточка». Списать можно до 15% стоимости покупки.
     </div>
@@ -1042,6 +1100,32 @@
     </div>
   </div>
 
+  <div id="vk-link-modal" class="app-overlay hidden" onclick="closeVkLinkModal(event)">
+    <div class="overlay-panel" onclick="event.stopPropagation()">
+      <div class="overlay-title">Подключить VK</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5">
+        Подтвердите номер в VK и введите этот одноразовый код. Код действует 10 минут.
+      </div>
+      <div class="link-code-box" id="vk-link-code">------</div>
+      <button class="btn btn-primary" onclick="openVkApp()">Открыть VK</button>
+      <button class="btn btn-secondary" onclick="copyVkLinkCode()" style="margin-top:10px">Скопировать код</button>
+      <button class="btn btn-secondary" onclick="closeVkLinkModal()" style="margin-top:10px">Закрыть</button>
+    </div>
+  </div>
+
+  <div id="vk-claim-modal" class="app-overlay hidden" onclick="closeVkClaimModal(event)">
+    <div class="overlay-panel" onclick="event.stopPropagation()">
+      <div class="overlay-title">Подключить карту из VK</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px">
+        Введите шестизначный код, который показан в приложении VK.
+      </div>
+      <input class="input link-code-input" id="vk-claim-code" inputmode="numeric"
+        autocomplete="one-time-code" maxlength="6" placeholder="000000">
+      <button class="btn btn-primary" onclick="claimVkCardFromForm()" style="margin-top:12px">Подключить карту</button>
+      <button class="btn btn-secondary" onclick="closeVkClaimModal()" style="margin-top:10px">Закрыть</button>
+    </div>
+  </div>
+
   <!-- ── REGISTER ────────────────────────────────────── -->
   <div id="screen-register" class="hidden">
     <div class="header">
@@ -1066,6 +1150,9 @@
         <input class="input" id="reg-phone" type="tel" placeholder="+7 (___) ___-__-__">
       </div>
       <button class="btn btn-primary" onclick="doRegister()">🎉 Зарегистрироваться</button>
+      <button class="btn btn-secondary" onclick="openVkClaimModal()" style="margin-top:10px">
+        У меня уже есть карта в VK
+      </button>
     </div>
   </div>
 
@@ -1296,6 +1383,9 @@
   <script>
   const API_URL =
   'https://script.google.com/macros/s/AKfycbzmKzxEfggbucKwhmyC5aGXjB5yRl07F-0W2QJInVb-aK5lRjOVG1E0mEFJdNZJrOAC3A/exec';
+  const LINK_API_URL =
+  'https://script.google.com/macros/s/AKfycbwAS_xIHbXDA6Gx_0mzc2gIuKqqRHsPH2XS8vhAMRt7720EyauFupnD00VCpdSzCTmt/exec';
+  const VK_APP_URL = 'https://vk.com/app54700149';
 
   // ══════════════════════════════════════════════
   // 🛠 DEBUG MODE — убрать перед деплоем в прод
@@ -1313,10 +1403,12 @@
 
   const tg = window.Telegram?.WebApp || {
     ready: () => {}, expand: () => {},
+    initData: '',
     initDataUnsafe: {},
     showConfirm: (msg, cb) => cb(window.confirm(msg)),
     showScanQrPopup: () => alert('QR-сканер доступен только в Telegram'),
     closeScanQrPopup: () => {},
+    openLink: (url) => window.open(url, '_blank', 'noopener,noreferrer'),
     HapticFeedback: { selectionChanged: () => {}, notificationOccurred: () => {} },
     MainButton: { show: () => {}, hide: () => {}, setText: () => {}, onClick: () => {} },
   };
@@ -1378,6 +1470,36 @@
 
   function fmt(n) {
     return Number(n || 0).toLocaleString('ru-RU');
+  }
+
+  async function linkApi(action, payload = {}) {
+    if (_debugActive) {
+      if (action === 'create_link_code') {
+        return { success: true, code: '123456', expires_in_seconds: 600 };
+      }
+      if (action === 'claim_link_code') {
+        return { success: true, client: { client_id: 'preview_client' } };
+      }
+    }
+    if (!tg.initData) throw new Error('Откройте приложение внутри Telegram');
+
+    const response = await fetch(LINK_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        platform: 'telegram',
+        init_data: tg.initData,
+        action,
+        payload,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      const error = new Error(data.error || 'Ошибка сервера');
+      error.code = data.code || 'REQUEST_FAILED';
+      throw error;
+    }
+    return data;
   }
 
   function operationCountLabel(count) {
@@ -1486,6 +1608,17 @@
     }
 
     try {
+      const startParam = tg.initDataUnsafe?.start_param || '';
+      if (startParam.startsWith('link_')) {
+        const code = startParam.slice(5).replace(/\D/g, '');
+        if (/^\d{6}$/.test(code)) {
+          try {
+            await claimVkLinkCode(code, true);
+          } catch (error) {
+            showToast(error.message || 'Не удалось подключить карту из VK', 'error');
+          }
+        }
+      }
       const data = await api({ action: 'getRole' });
       if (data.role === 'admin') {
         showScreen('screen-admin');
@@ -1662,6 +1795,76 @@
       navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована', 'success'));
     } else {
       showToast(link, '');
+    }
+  }
+
+  async function openVkLinkModal() {
+    try {
+      const data = await linkApi('create_link_code');
+      if (data.already_linked) {
+        showToast('VK уже подключён', 'success');
+        return;
+      }
+      if (!data.code) throw new Error('Не удалось создать код');
+      document.getElementById('vk-link-code').textContent = data.code;
+      document.getElementById('vk-link-modal').classList.remove('hidden');
+      tg.HapticFeedback?.notificationOccurred?.('success');
+    } catch (error) {
+      showToast(error.message || 'Не удалось создать код для VK', 'error');
+    }
+  }
+
+  function closeVkLinkModal(e) {
+    if (e && e.target !== document.getElementById('vk-link-modal')) return;
+    document.getElementById('vk-link-modal').classList.add('hidden');
+  }
+
+  function openVkApp() {
+    if (tg.openLink) tg.openLink(VK_APP_URL);
+    else window.open(VK_APP_URL, '_blank', 'noopener,noreferrer');
+  }
+
+  function copyVkLinkCode() {
+    const code = document.getElementById('vk-link-code').textContent.trim();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => showToast('Код скопирован', 'success'));
+    } else {
+      showToast(code);
+    }
+  }
+
+  function openVkClaimModal() {
+    document.getElementById('vk-claim-code').value = '';
+    document.getElementById('vk-claim-modal').classList.remove('hidden');
+    document.getElementById('vk-claim-code').focus();
+  }
+
+  function closeVkClaimModal(e) {
+    if (e && e.target !== document.getElementById('vk-claim-modal')) return;
+    document.getElementById('vk-claim-modal').classList.add('hidden');
+  }
+
+  async function claimVkLinkCode(code, automatic = false) {
+    const normalizedCode = String(code || '').replace(/\D/g, '');
+    if (!/^\d{6}$/.test(normalizedCode)) {
+      throw new Error('Введите шестизначный код из VK');
+    }
+    const data = await linkApi('claim_link_code', { code: normalizedCode });
+    tg.HapticFeedback?.notificationOccurred?.('success');
+    showToast(automatic ? 'Карта из VK подключена автоматически' : 'Карта из VK подключена', 'success');
+    return data;
+  }
+
+  async function claimVkCardFromForm() {
+    const input = document.getElementById('vk-claim-code');
+    try {
+      await claimVkLinkCode(input.value);
+      closeVkClaimModal();
+      showScreen('screen-loading');
+      await loadClient();
+    } catch (error) {
+      tg.HapticFeedback?.notificationOccurred?.('error');
+      showToast(error.message || 'Не удалось подключить карту', 'error');
     }
   }
 
